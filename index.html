@@ -141,42 +141,34 @@ const db = firebase.firestore();
 const listaProductos = document.getElementById("listaProductos");
 
 /* ================= LEER PRODUCTOS (REAL TIME) ================= */
-db.collection("productos")
-  .orderBy("precio", "desc")
-  .onSnapshot(snapshot => {
-    listaProductos.innerHTML = "";
-    snapshot.forEach(doc => {
-      const p = doc.data();
-      listaProductos.innerHTML += `
-        <tr>
-          <td><img src="${p.img}"></td>
-          <td>${p.desc}</td>
-          <td>${p.disp}</td>
-          <td>${p.precio}</td>
-          <td>
-            <button onclick="editarProducto('${doc.id}')">Editar</button>
-            <button onclick="eliminarProducto('${doc.id}')">Eliminar</button>
-          </td>
-        </tr>
-      `;
-    });
+db.collection("productos").onSnapshot(snapshot => {
+  listaProductos.innerHTML = "";
+  snapshot.forEach(doc => {
+    const p = doc.data();
+    listaProductos.innerHTML += `
+      <tr>
+        <td><img src="${p.img}"></td>
+        <td>${p.desc}</td>
+        <td>${p.disp}</td>
+        <td>${p.precio}</td>
+        <td>
+          <button onclick="editarProducto('${doc.id}')">Editar</button>
+          <button onclick="eliminarProducto('${doc.id}')">Eliminar</button>
+        </td>
+      </tr>
+    `;
+  });
 });
-
-
 
 /* ================= CRUD ================= */
 function guardarProducto() {
   if (!logeado) return;
 
   const producto = {
-  desc: descripcion.value,
-  disp: disponible.value,
-  precio: precio.value,
-  img: imagen.value
-};
-
-};
-
+    desc: descripcion.value,
+    disp: disponible.value,
+    precio: precio.value,
+    img: imagen.value
   };
 
   if (!producto.desc || !producto.disp || !producto.precio || !producto.img) {
@@ -235,6 +227,7 @@ function limpiarFormulario() {
 
 </body>
 </html>
+
 
 
 
