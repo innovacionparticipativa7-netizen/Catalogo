@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <meta charset="UTF-8">
 <title>Catálogo de Premios IP</title>
 
@@ -105,18 +109,8 @@ img {
 </tr>
 </thead>
 
-<tbody>
-<tr>
-<td><img src="https://i5.walmartimages.cl/asr/f13b4f04-bbec-4d46-b020-05c2d7b69a9b.4e45fe8d151ce91329d7b0a9d05406cb.jpeg?null"></td>
-<td>Moto E14</td>
-<td>1</td>
-<td>2500</td>
-<td>
-  <button onclick="editarProducto(this)">Editar</button>
-  <button onclick="eliminarProducto(this)">Eliminar</button>
-</td>
-</tr>
-</tbody>
+<tbody id="listaProductos"></tbody>
+
 </table>
 
 <script>
@@ -219,8 +213,48 @@ function limpiarFormulario() {
   editIndex.value = "";
 }
 </script>
+<script>
+/* CONFIGURACIÓN FIREBASE */
+const firebaseConfig = {
+  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
+    authDomain: "catalogo-ee5b7.firebaseapp.com",
+    projectId: "catalogo-ee5b7",
+    storageBucket: "catalogo-ee5b7.firebasestorage.app",
+    messagingSenderId: "577362291946",
+    appId: "1:577362291946:web:fe798c5e79e311a8967b93",
+    measurementId: "G-614VMMXP8Z"
+};
+
+/* INICIALIZAR FIREBASE */
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* REFERENCIAS HTML */
+const listaProductos = document.getElementById("listaProductos");
+
+/* LEER PRODUCTOS EN TIEMPO REAL */
+db.collection("productos").onSnapshot(snapshot => {
+  listaProductos.innerHTML = "";
+  snapshot.forEach(doc => {
+    const p = doc.data();
+    listaProductos.innerHTML += `
+      <tr>
+        <td><img src="${p.img}"></td>
+        <td>${p.desc}</td>
+        <td>${p.disp}</td>
+        <td>${p.precio}</td>
+        <td>
+          <button onclick="editarProducto('${doc.id}')">Editar</button>
+          <button onclick="eliminarProducto('${doc.id}')">Eliminar</button>
+        </td>
+      </tr>
+    `;
+  });
+});
+</script>
 
 </body>
 </html>
+
 
 
