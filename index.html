@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Catálogo de Productos</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+input, button {
+  padding: 6px;
+  margin: 4px 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+img {
+  width: 80px;
+  border-radius: 6px;
+}
+
+.admin {
+  background: #f9f9f9;
+  padding: 10px;
+  margin-top: 15px;
+  border: 1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Catálogo de Productos</h2>
+
+<input type="text" id="buscador" placeholder="Buscar producto..." onkeyup="buscar()">
+
+<!-- LOGIN -->
+<div class="admin">
+  <h3>Acceso administrador</h3>
+  <input type="password" id="password" placeholder="Contraseña">
+  <button onclick="login()">Ingresar</button>
+</div>
+
+<!-- FORMULARIO -->
+<div id="formulario" class="admin" style="display:none;">
+  <h3>Agregar / Editar producto</h3>
+
+  <input type="hidden" id="editIndex">
+
+  <input type="text" id="descripcion" placeholder="Descripción"><br>
+  <input type="number" id="disponible" placeholder="Disponible"><br>
+  <input type="number" id="precio" placeholder="Punto IP"><br>
+  <input type="text" id="imagen" placeholder="URL de la imagen"><br>
+
+  <button onclick="guardarProducto()">Guardar</button>
+  <button onclick="cancelarEdicion()">Cancelar</button>
+</div>
+
+<table id="tablaProductos">
+<thead>
+<tr>
+  <th>Foto</th>
+  <th>Descripción</th>
+  <th>Disponible</th>
+  <th>Punto IP</th>
+  <th>Acciones</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><img src="https://i5.walmartimages.cl/asr/f13b4f04-bbec-4d46-b020-05c2d7b69a9b.4e45fe8d151ce91329d7b0a9d05406cb.jpeg?null"></td>
+<td>Moto E14</td>
+<td>1</td>
+<td>2500</td>
+<td>
+  <button onclick="editarProducto(this)">Editar</button>
+  <button onclick="eliminarProducto(this)">Eliminar</button>
+</td>
+</tr>
+</tbody>
+</table>
+
+<script>
+const CONTRASENA = "1234";
+let logeado = false;
+
+function login() {
+  if (document.getElementById("password").value === CONTRASENA) {
+    logeado = true;
+    document.getElementById("formulario").style.display = "block";
+    alert("Acceso concedido");
+  } else {
+    alert("Contraseña incorrecta");
+  }
+}
+
+function buscar() {
+  let texto = buscador.value.toLowerCase();
+  document.querySelectorAll("#tablaProductos tbody tr").forEach(fila => {
+    fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none";
+  });
+}
+
+function guardarProducto() {
+  if (!logeado) return;
+
+  let d = descripcion.value;
+  let disp = disponible.value;
+  let p = precio.value;
+  let img = imagen.value;
+  let index = editIndex.value;
+
+  if (!d || !disp || !p || !img) {
+    alert("Completa todos los campos");
+    return;
+  }
+
+  if (index === "") {
+    let fila = tablaProductos.querySelector("tbody").insertRow();
+    fila.innerHTML = crearFila(img, d, disp, p);
+  } else {
+    let fila = tablaProductos.rows[index];
+    fila.cells[0].innerHTML = `<img src="${img}">`;
+    fila.cells[1].innerText = d;
+    fila.cells[2].innerText = disp;
+    fila.cells[3].innerText = p;
+  }
+
+  limpiarFormulario();
+}
+
+function crearFila(img, d, disp, p) {
+  return `
+    <td><img src="${img}"></td>
+    <td>${d}</td>
+    <td>${disp}</td>
+    <td>${p}</td>
+    <td>
+      <button onclick="editarProducto(this)">Editar</button>
+      <button onclick="eliminarProducto(this)">Eliminar</button>
+    </td>
+  `;
+}
+
+function editarProducto(boton) {
+  if (!logeado) {
+    alert("Acceso restringido");
+    return;
+  }
+
+  let fila = boton.closest("tr");
+  editIndex.value = fila.rowIndex;
+
+  descripcion.value = fila.cells[1].innerText;
+  disponible.value = fila.cells[2].innerText;
+  precio.value = fila.cells[3].innerText;
+  imagen.value = fila.cells[0].querySelector("img").src;
+}
+
+function eliminarProducto(boton) {
+  if (!logeado) {
+    alert("Acceso restringido");
+    return;
+  }
+
+  if (confirm("¿Eliminar producto?")) {
+    boton.closest("tr").remove();
+  }
+}
+
+function cancelarEdicion() {
+  limpiarFormulario();
+}
+
+function limpiarFormulario() {
+  descripcion.value = "";
+  disponible.value = "";
+  precio.value = "";
+  imagen.value = "";
+  editIndex.value = "";
+}
+</script>
+
+</body>
+</html>
