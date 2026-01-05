@@ -163,15 +163,18 @@ db.collection("productos")
 });
 
 
+
 /* ================= CRUD ================= */
 function guardarProducto() {
   if (!logeado) return;
 
   const producto = {
   desc: descripcion.value,
-  disp: Number(disponible.value),
-  precio: Number(precio.value),
+  disp: disponible.value,
+  precio: precio.value,
   img: imagen.value
+};
+
 };
 
   };
