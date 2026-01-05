@@ -8,102 +8,197 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
+      font-family: 'Inter', sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 30px;
     }
 
-    input, button {
-      padding: 6px;
-      margin: 4px 0;
+    h1 {
+      margin-bottom: 10px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #f2f2f2;
-    }
-
-    img {
-      width: 80px;
-      border-radius: 6px;
-    }
-
-    .admin-login {
-      position: fixed;
-      top: 10px;
-      right: 10px;
+    .top-bar {
       display: flex;
-      gap: 4px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .search {
+      padding: 10px;
+      width: 260px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    /* ADMIN LOGIN */
+    .admin-login {
+      display: flex;
+      gap: 6px;
     }
 
     .admin-login input {
-      width: 90px;
-      font-size: 12px;
+      padding: 8px;
+      width: 110px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
 
-    .admin {
-      background: #f9f9f9;
+    .admin-login button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: #111827;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* FORM */
+    .admin-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      margin-bottom: 25px;
+      max-width: 500px;
+    }
+
+    .admin-panel input {
+      width: 100%;
       padding: 10px;
-      margin-top: 15px;
+      margin-bottom: 10px;
+      border-radius: 6px;
       border: 1px solid #ccc;
+    }
+
+    .admin-panel button {
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .save {
+      background: #2563eb;
+      color: white;
+    }
+
+    .cancel {
+      background: #e5e7eb;
+    }
+
+    /* GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #f3f4f6;
+      margin-bottom: 12px;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      margin: 0 0 6px;
+    }
+
+    .badge {
+      background: #111827;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      display: inline-block;
+      margin-bottom: 6px;
+      width: fit-content;
+    }
+
+    .stock {
+      font-size: 13px;
+      color: #4b5563;
+      margin-bottom: 10px;
+    }
+
+    .actions {
+      margin-top: auto;
+      display: flex;
+      gap: 6px;
+    }
+
+    .actions button {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .edit {
+      background: #fde68a;
+    }
+
+    .delete {
+      background: #fecaca;
     }
   </style>
 </head>
 
 <body>
 
-<h2>Catálogo de Premios IP</h2>
+<h1>🎁 Catálogo de Premios IP</h1>
 
-<input type="text" id="buscador" placeholder="Buscar producto..." onkeyup="buscar()">
+<div class="top-bar">
+  <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="buscar()">
 
-<!-- LOGIN ADMIN -->
-<div class="admin-login">
-  <input type="password" id="password" placeholder="Admin">
-  <button onclick="login()">OK</button>
+  <div class="admin-login">
+    <input type="password" id="password" placeholder="Admin">
+    <button onclick="login()">OK</button>
+  </div>
 </div>
 
 <!-- FORMULARIO -->
-<div id="formulario" class="admin" style="display:none;">
-  <h3>Agregar / Editar producto</h3>
-
+<div id="formulario" class="admin-panel" style="display:none;">
   <input type="hidden" id="editIndex">
+  <input id="descripcion" placeholder="Descripción">
+  <input id="disponible" type="number" placeholder="Disponible">
+  <input id="precio" type="number" placeholder="Puntos IP">
+  <input id="imagen" placeholder="URL de imagen">
 
-  <input type="text" id="descripcion" placeholder="Descripción"><br>
-  <input type="number" id="disponible" placeholder="Disponible"><br>
-  <input type="number" id="precio" placeholder="Punto IP"><br>
-  <input type="text" id="imagen" placeholder="URL de la imagen"><br>
-
-  <button onclick="guardarProducto()">Guardar</button>
-  <button onclick="cancelarEdicion()">Cancelar</button>
+  <button class="save" onclick="guardarProducto()">Guardar</button>
+  <button class="cancel" onclick="cancelarEdicion()">Cancelar</button>
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Foto</th>
-      <th>Descripción</th>
-      <th>Disponible</th>
-      <th>Punto IP</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody id="listaProductos"></tbody>
-</table>
+<!-- PRODUCTOS -->
+<div id="listaProductos" class="grid"></div>
 
 <script>
-/* ================= ADMIN ================= */
+/* ADMIN */
 const CONTRASENA = "1234";
 let logeado = false;
 
@@ -111,21 +206,19 @@ function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
     formulario.style.display = "block";
-    alert("Acceso administrador concedido");
-  } else {
-    alert("Contraseña incorrecta");
-  }
+    alert("Modo administrador activado");
+  } else alert("Contraseña incorrecta");
 }
 
-/* ================= BUSCADOR ================= */
+/* BUSCAR */
 function buscar() {
-  let texto = buscador.value.toLowerCase();
-  document.querySelectorAll("#listaProductos tr").forEach(fila => {
-    fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none";
+  const texto = buscador.value.toLowerCase();
+  document.querySelectorAll(".card").forEach(card => {
+    card.style.display = card.innerText.toLowerCase().includes(texto) ? "" : "none";
   });
 }
 
-/* ================= FIREBASE ================= */
+/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
@@ -138,59 +231,45 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-const listaProductos = document.getElementById("listaProductos");
-
-/* ================= LEER PRODUCTOS (REAL TIME) ================= */
-db.collection("productos").onSnapshot(snapshot => {
+/* CARGAR PRODUCTOS */
+db.collection("productos").orderBy("precio", "desc").onSnapshot(snapshot => {
   listaProductos.innerHTML = "";
   snapshot.forEach(doc => {
     const p = doc.data();
     listaProductos.innerHTML += `
-      <tr>
-        <td><img src="${p.img}"></td>
-        <td>${p.desc}</td>
-        <td>${p.disp}</td>
-        <td>${p.precio}</td>
-        <td>
-          <button onclick="editarProducto('${doc.id}')">Editar</button>
-          <button onclick="eliminarProducto('${doc.id}')">Eliminar</button>
-        </td>
-      </tr>
+      <div class="card">
+        <img src="${p.img}">
+        <span class="badge">${p.precio} IP</span>
+        <h3>${p.desc}</h3>
+        <div class="stock">Disponibles: ${p.disp}</div>
+        ${logeado ? `
+        <div class="actions">
+          <button class="edit" onclick="editarProducto('${doc.id}')">Editar</button>
+          <button class="delete" onclick="eliminarProducto('${doc.id}')">Eliminar</button>
+        </div>` : ""}
+      </div>
     `;
   });
 });
 
-/* ================= CRUD ================= */
+/* CRUD */
 function guardarProducto() {
-  if (!logeado) return;
-
   const producto = {
     desc: descripcion.value,
-    disp: disponible.value,
-    precio: precio.value,
+    disp: Number(disponible.value),
+    precio: Number(precio.value),
     img: imagen.value
   };
 
-  if (!producto.desc || !producto.disp || !producto.precio || !producto.img) {
-    alert("Completa todos los campos");
-    return;
-  }
-
-  if (editIndex.value === "") {
+  if (editIndex.value === "")
     db.collection("productos").add(producto);
-  } else {
+  else
     db.collection("productos").doc(editIndex.value).update(producto);
-  }
 
   limpiarFormulario();
 }
 
 function editarProducto(id) {
-  if (!logeado) {
-    alert("Acceso restringido");
-    return;
-  }
-
   db.collection("productos").doc(id).get().then(doc => {
     const p = doc.data();
     editIndex.value = id;
@@ -202,19 +281,11 @@ function editarProducto(id) {
 }
 
 function eliminarProducto(id) {
-  if (!logeado) {
-    alert("Acceso restringido");
-    return;
-  }
-
-  if (confirm("¿Eliminar producto?")) {
+  if (confirm("¿Eliminar producto?"))
     db.collection("productos").doc(id).delete();
-  }
 }
 
-function cancelarEdicion() {
-  limpiarFormulario();
-}
+function cancelarEdicion() { limpiarFormulario(); }
 
 function limpiarFormulario() {
   descripcion.value = "";
@@ -227,6 +298,8 @@ function limpiarFormulario() {
 
 </body>
 </html>
+
+
 
 
 
