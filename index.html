@@ -57,6 +57,27 @@ img {
   <input type="password" id="password" placeholder="Contraseña">
   <button onclick="login()">Ingresar</button>
 </div>
+<style>  
+.admin-login {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+}
+
+.admin-login input {
+  width: 90px;
+  padding: 4px;
+  font-size: 12px;
+}
+
+.admin-login button {
+  padding: 4px 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+</style>
 
 <!-- FORMULARIO -->
 <div id="formulario" class="admin" style="display:none;">
@@ -201,4 +222,5 @@ function limpiarFormulario() {
 
 </body>
 </html>
+
 
