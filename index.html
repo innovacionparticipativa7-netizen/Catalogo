@@ -34,6 +34,26 @@
       gap: 10px;
     }
 
+
+      .titulo {
+      text-align: center;
+      font-size: 48px;        /* MÁS GRANDE */
+      font-weight: 800;
+      margin: 30px 0 40px;
+      color: #1e293b;
+    }
+    
+    /* Línea decorativa debajo del título */
+    .titulo::after {
+      content: "";
+      display: block;
+      width: 120px;
+      height: 5px;
+      background: linear-gradient(90deg, #2563eb, #9333ea);
+      margin: 15px auto 0;
+      border-radius: 10px;
+    }
+
     .search {
       padding: 10px;
       width: 260px;
@@ -298,6 +318,7 @@ function limpiarFormulario() {
 
 </body>
 </html>
+
 
 
 
