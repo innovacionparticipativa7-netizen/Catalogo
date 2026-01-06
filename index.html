@@ -1,200 +1,131 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Catálogo de Premios IP</title>
+<meta charset="UTF-8">
+<title>Catálogo de Premios IP</title>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <style>
-    * { box-sizing: border-box; }
+<style>
+* { box-sizing: border-box; }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 30px;
-    }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 30px;
+}
 
-    h1 {
-      margin-bottom: 10px;
-    }
+.titulo {
+  text-align: center;
+  font-size: 48px;
+  font-weight: 800;
+  margin: 30px 0 40px;
+  color: #1e293b;
+}
+.titulo::after {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 5px;
+  background: linear-gradient(90deg, #2563eb, #9333ea);
+  margin: 15px auto 0;
+  border-radius: 10px;
+}
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
 
+.search {
+  padding: 10px;
+  width: 260px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
 
-      .titulo {
-      text-align: center;
-      font-size: 48px;        /* MÁS GRANDE */
-      font-weight: 800;
-      margin: 30px 0 40px;
-      color: #1e293b;
-    }
-    
-    /* Línea decorativa debajo del título */
-    .titulo::after {
-      content: "";
-      display: block;
-      width: 120px;
-      height: 5px;
-      background: linear-gradient(90deg, #2563eb, #9333ea);
-      margin: 15px auto 0;
-      border-radius: 10px;
-    }
+.admin-login {
+  display: flex;
+  gap: 6px;
+}
+.admin-login input {
+  padding: 8px;
+  width: 110px;
+  border-radius: 6px;
+}
+.admin-login button {
+  padding: 8px 12px;
+  background: #111827;
+  color: white;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
 
-    .search {
-      padding: 10px;
-      width: 260px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
+/* FILTROS */
+.filtros {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  margin-bottom: 25px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 14px;
+}
 
-    /* ADMIN LOGIN */
-    .admin-login {
-      display: flex;
-      gap: 6px;
-    }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
 
-    .admin-login input {
-      padding: 8px;
-      width: 110px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+}
 
-    .admin-login button {
-      padding: 8px 12px;
-      border-radius: 6px;
-      background: #111827;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #f3f4f6;
+  margin-bottom: 12px;
+}
 
-    /* FORM */
-    .admin-panel {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      margin-bottom: 25px;
-      max-width: 500px;
-    }
-
-    .admin-panel input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    .admin-panel button {
-      padding: 10px 14px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .save {
-      background: #2563eb;
-      color: white;
-    }
-
-    .cancel {
-      background: #e5e7eb;
-    }
-
-    /* GRID */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 15px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card img {
-      width: 100%;
-      height: 180px;
-      object-fit: contain;
-      border-radius: 12px;
-      background: #f3f4f6;
-      margin-bottom: 12px;
-    }
-
-    .card h3 {
-      font-size: 16px;
-      margin: 0 0 6px;
-    }
-
-    .badge {
-      background: #111827;
-      color: white;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      display: inline-block;
-      margin-bottom: 6px;
-      width: fit-content;
-    }
-
-    .stock {
-      font-size: 13px;
-      color: #4b5563;
-      margin-bottom: 10px;
-    }
-
-    .actions {
-      margin-top: auto;
-      display: flex;
-      gap: 6px;
-    }
-
-    .actions button {
-      flex: 1;
-      padding: 8px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    .edit {
-      background: #fde68a;
-    }
-
-    .delete {
-      background: #fecaca;
-    }
-  </style>
+.badge {
+  background: #111827;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  width: fit-content;
+  margin-bottom: 6px;
+}
+</style>
 </head>
 
 <body>
 
-<h1 class="titulo"> 🎁 Catálogo de Premios IP</h1>
+<h1 class="titulo">🎁 Catálogo de Premios IP</h1>
 
 <div class="top-bar">
-  <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="buscar()">
+  <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="aplicarFiltros()">
 
   <div class="admin-login">
     <input type="password" id="password" placeholder="Admin">
@@ -202,16 +133,13 @@
   </div>
 </div>
 
-<!-- FORMULARIO -->
-<div id="formulario" class="admin-panel" style="display:none;">
-  <input type="hidden" id="editIndex">
-  <input id="descripcion" placeholder="Descripción">
-  <input id="disponible" type="number" placeholder="Disponible">
-  <input id="precio" type="number" placeholder="Puntos IP">
-  <input id="imagen" placeholder="URL de imagen">
-
-  <button class="save" onclick="guardarProducto()">Guardar</button>
-  <button class="cancel" onclick="cancelarEdicion()">Cancelar</button>
+<!-- FILTROS -->
+<div class="filtros">
+  <strong>Filtrar por puntos:</strong>
+  <label><input type="checkbox" value="40" onchange="aplicarFiltros()"> 40 IP</label>
+  <label><input type="checkbox" value="50" onchange="aplicarFiltros()"> 50 IP</label>
+  <label><input type="checkbox" value="80" onchange="aplicarFiltros()"> 80 IP</label>
+  <label><input type="checkbox" value="2500" onchange="aplicarFiltros()"> 2500 IP</label>
 </div>
 
 <!-- PRODUCTOS -->
@@ -225,99 +153,56 @@ let logeado = false;
 function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
-    formulario.style.display = "block";
     alert("Modo administrador activado");
   } else alert("Contraseña incorrecta");
 }
 
-/* BUSCAR */
-function buscar() {
-  const texto = buscador.value.toLowerCase();
-  document.querySelectorAll(".card").forEach(card => {
-    card.style.display = card.innerText.toLowerCase().includes(texto) ? "" : "none";
-  });
-}
-
 /* FIREBASE */
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
-  projectId: "catalogo-ee5b7",
-  storageBucket: "catalogo-ee5b7.firebasestorage.app",
-  messagingSenderId: "577362291946",
-  appId: "1:577362291946:web:fe798c5e79e311a8967b93"
-};
-
-firebase.initializeApp(firebaseConfig);
+  projectId: "catalogo-ee5b7"
+});
 const db = firebase.firestore();
 
-/* CARGAR PRODUCTOS */
+const listaProductos = document.getElementById("listaProductos");
+
+/* CARGA */
 db.collection("productos").orderBy("precio", "desc").onSnapshot(snapshot => {
   listaProductos.innerHTML = "";
   snapshot.forEach(doc => {
     const p = doc.data();
     listaProductos.innerHTML += `
-      <div class="card">
+      <div class="card" data-precio="${p.precio}">
         <img src="${p.img}">
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
-        <div class="stock">Disponibles: ${p.disp}</div>
-        ${logeado ? `
-        <div class="actions">
-          <button class="edit" onclick="editarProducto('${doc.id}')">Editar</button>
-          <button class="delete" onclick="eliminarProducto('${doc.id}')">Eliminar</button>
-        </div>` : ""}
+        <div>Disponibles: ${p.disp}</div>
       </div>
     `;
   });
+  aplicarFiltros();
 });
 
-/* CRUD */
-function guardarProducto() {
-  const producto = {
-    desc: descripcion.value,
-    disp: Number(disponible.value),
-    precio: Number(precio.value),
-    img: imagen.value
-  };
+/* BUSCADOR + FILTROS */
+function aplicarFiltros() {
+  const texto = buscador.value.toLowerCase();
+  const checks = document.querySelectorAll('.filtros input:checked');
+  const puntos = Array.from(checks).map(c => c.value);
 
-  if (editIndex.value === "")
-    db.collection("productos").add(producto);
-  else
-    db.collection("productos").doc(editIndex.value).update(producto);
+  document.querySelectorAll('.card').forEach(card => {
+    const coincideTexto = card.innerText.toLowerCase().includes(texto);
+    const coincidePuntos =
+      puntos.length === 0 || puntos.includes(card.dataset.precio);
 
-  limpiarFormulario();
-}
-
-function editarProducto(id) {
-  db.collection("productos").doc(id).get().then(doc => {
-    const p = doc.data();
-    editIndex.value = id;
-    descripcion.value = p.desc;
-    disponible.value = p.disp;
-    precio.value = p.precio;
-    imagen.value = p.img;
+    card.style.display = coincideTexto && coincidePuntos ? "" : "none";
   });
-}
-
-function eliminarProducto(id) {
-  if (confirm("¿Eliminar producto?"))
-    db.collection("productos").doc(id).delete();
-}
-
-function cancelarEdicion() { limpiarFormulario(); }
-
-function limpiarFormulario() {
-  descripcion.value = "";
-  disponible.value = "";
-  precio.value = "";
-  imagen.value = "";
-  editIndex.value = "";
 }
 </script>
 
 </body>
 </html>
+
 
 
 
