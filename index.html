@@ -171,6 +171,25 @@ body {
   border: none;
   cursor: pointer;
 }
+  .header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.logo {
+  width: 70px;        /* ajusta tamaño */
+  height: auto;
+}
+
+.titulo {
+  font-size: 48px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
 
 </style>
   <link rel="icon" href="Favicon.png" type="image/png">
@@ -178,7 +197,11 @@ body {
 
 <body>
 
-<h1 class="titulo">🎁 Tienda de Premios IP</h1>
+<div class="header">
+  <img src="logo.png" alt="Logo Tienda" class="logo">
+  <h1 class="titulo">Tienda de Premios IP</h1>
+</div>
+
 
 <div class="top-bar">
   <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="aplicarFiltros()">
@@ -380,6 +403,7 @@ function cerrarModal() {
 
 </body>
 </html>
+
 
 
 
