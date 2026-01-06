@@ -118,6 +118,30 @@ body {
   width: fit-content;
   margin-bottom: 6px;
 }
+  .admin-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+  max-width: 500px;
+}
+
+.admin-panel input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.admin-panel button {
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
 </style>
 </head>
 
@@ -137,7 +161,20 @@ body {
 <div class="filtros" id="filtros">
   <strong>Filtrar por puntos:</strong>
 </div>
+  
+<!-- FORMULARIO ADMIN (AQUÍ VA) -->
+<div id="formulario" class="admin-panel" style="display:none;">
+  <input type="hidden" id="editIndex">
 
+  <input id="descripcion" placeholder="Descripción">
+  <input id="disponible" type="number" placeholder="Disponible">
+  <input id="precio" type="number" placeholder="Puntos IP">
+  <input id="imagen" placeholder="URL de imagen">
+
+  <button onclick="guardarProducto()">Guardar</button>
+  <button onclick="cancelarEdicion()">Cancelar</button>
+</div>
+  
 <!-- PRODUCTOS -->
 <div id="listaProductos" class="grid"></div>
 
@@ -149,11 +186,19 @@ let logeado = false;
 function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
+
+    /*SE MUESTRA EL FORMULARIO*/
+    document.getElementById("formulario").style.display = "block";
+
+    /*SE REDIBUJAN LAS CARDS CON BOTONES*/
+    renderProductos();
+
     alert("Modo administrador activado");
   } else {
     alert("Contraseña incorrecta");
   }
 }
+
 
 /* ================= FIREBASE ================= */
 firebase.initializeApp({
@@ -183,7 +228,7 @@ function generarFiltros() {
   const contenedor = document.getElementById("filtros");
   contenedor.innerHTML = "<strong>Filtrar por puntos:</strong>";
 
-  const puntosUnicos = [...new Set(productos.map(p => p.precio))];
+  const puntosUnicos = [...new Set(productos.map(p => p.precio))].sort((a,b)=>a-b);
 
   puntosUnicos.forEach(punto => {
     const label = document.createElement("label");
@@ -206,12 +251,64 @@ function renderProductos() {
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div>Disponibles: ${p.disp}</div>
+
+        ${logeado ? `
+          <div class="actions">
+            <button onclick="editarProducto('${p.id}')">Editar</button>
+            <button onclick="eliminarProducto('${p.id}')">Eliminar</button>
+          </div>
+        ` : ""}
       </div>
     `;
   });
 
   aplicarFiltros();
 }
+function editarProducto(id) {
+  db.collection("productos").doc(id).get().then(doc => {
+    const p = doc.data();
+    editIndex.value = id;
+    descripcion.value = p.desc;
+    disponible.value = p.disp;
+    precio.value = p.precio;
+    imagen.value = p.img;
+  });
+}
+
+function eliminarProducto(id) {
+  if (confirm("¿Eliminar producto?")) {
+    db.collection("productos").doc(id).delete();
+  }
+}
+function guardarProducto() {
+  const producto = {
+    desc: descripcion.value,
+    disp: Number(disponible.value),
+    precio: Number(precio.value),
+    img: imagen.value
+  };
+
+  if (!producto.desc || !producto.disp || !producto.precio || !producto.img) {
+    alert("Completa todos los campos");
+    return;
+  }
+
+  if (editIndex.value === "") {
+    db.collection("productos").add(producto);
+  } else {
+    db.collection("productos").doc(editIndex.value).update(producto);
+  }
+
+  cancelarEdicion();
+}
+function cancelarEdicion() {
+  descripcion.value = "";
+  disponible.value = "";
+  precio.value = "";
+  imagen.value = "";
+  editIndex.value = "";
+}
+
 
 /* ================= BUSCADOR + FILTROS ================= */
 function aplicarFiltros() {
@@ -231,6 +328,7 @@ function aplicarFiltros() {
 
 </body>
 </html>
+
 
 
 
