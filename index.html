@@ -84,6 +84,7 @@ body {
   font-size: 14px;
 }
 
+/* GRID */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -126,27 +127,22 @@ body {
 
 <div class="top-bar">
   <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="aplicarFiltros()">
-
   <div class="admin-login">
     <input type="password" id="password" placeholder="Admin">
     <button onclick="login()">OK</button>
   </div>
 </div>
 
-<!-- FILTROS -->
-<div class="filtros">
+<!-- FILTROS DINÁMICOS -->
+<div class="filtros" id="filtros">
   <strong>Filtrar por puntos:</strong>
-  <label><input type="checkbox" value="40" onchange="aplicarFiltros()"> 40 IP</label>
-  <label><input type="checkbox" value="50" onchange="aplicarFiltros()"> 50 IP</label>
-  <label><input type="checkbox" value="80" onchange="aplicarFiltros()"> 80 IP</label>
-  <label><input type="checkbox" value="2500" onchange="aplicarFiltros()"> 2500 IP</label>
 </div>
 
 <!-- PRODUCTOS -->
 <div id="listaProductos" class="grid"></div>
 
 <script>
-/* ADMIN */
+/* ================= ADMIN ================= */
 const CONTRASENA = "1234";
 let logeado = false;
 
@@ -154,24 +150,56 @@ function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
     alert("Modo administrador activado");
-  } else alert("Contraseña incorrecta");
+  } else {
+    alert("Contraseña incorrecta");
+  }
 }
 
-/* FIREBASE */
+/* ================= FIREBASE ================= */
 firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
   projectId: "catalogo-ee5b7"
 });
-const db = firebase.firestore();
 
+const db = firebase.firestore();
 const listaProductos = document.getElementById("listaProductos");
 
-/* CARGA */
+let productos = [];
+
+/* ================= CARGA EN TIEMPO REAL ================= */
 db.collection("productos").orderBy("precio", "desc").onSnapshot(snapshot => {
-  listaProductos.innerHTML = "";
+  productos = [];
   snapshot.forEach(doc => {
-    const p = doc.data();
+    productos.push({ id: doc.id, ...doc.data() });
+  });
+
+  generarFiltros();
+  renderProductos();
+});
+
+/* ================= GENERAR FILTROS ================= */
+function generarFiltros() {
+  const contenedor = document.getElementById("filtros");
+  contenedor.innerHTML = "<strong>Filtrar por puntos:</strong>";
+
+  const puntosUnicos = [...new Set(productos.map(p => p.precio))];
+
+  puntosUnicos.forEach(punto => {
+    const label = document.createElement("label");
+    label.innerHTML = `
+      <input type="checkbox" value="${punto}" onchange="aplicarFiltros()">
+      ${punto} IP
+    `;
+    contenedor.appendChild(label);
+  });
+}
+
+/* ================= RENDER PRODUCTOS ================= */
+function renderProductos() {
+  listaProductos.innerHTML = "";
+
+  productos.forEach(p => {
     listaProductos.innerHTML += `
       <div class="card" data-precio="${p.precio}">
         <img src="${p.img}">
@@ -181,13 +209,14 @@ db.collection("productos").orderBy("precio", "desc").onSnapshot(snapshot => {
       </div>
     `;
   });
-  aplicarFiltros();
-});
 
-/* BUSCADOR + FILTROS */
+  aplicarFiltros();
+}
+
+/* ================= BUSCADOR + FILTROS ================= */
 function aplicarFiltros() {
   const texto = buscador.value.toLowerCase();
-  const checks = document.querySelectorAll('.filtros input:checked');
+  const checks = document.querySelectorAll('#filtros input:checked');
   const puntos = Array.from(checks).map(c => c.value);
 
   document.querySelectorAll('.card').forEach(card => {
