@@ -92,6 +92,15 @@ body {
   gap: 5px;
 }
 
+/* FORM ADMIN */
+.admin-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  max-width: 500px;
+}
+
 /* GRID */
 .grid {
   display: grid;
@@ -162,7 +171,6 @@ body {
   </div>
 </div>
 
-<!-- FILTROS DE PRECIOS -->
 <div id="filtros" class="filtros">
   <strong>Filtrar por puntos:</strong>
 </div>
@@ -179,6 +187,18 @@ body {
 <div id="listaProductos" class="grid"></div>
 
 <script>
+/* DOM */
+const listaProductos = document.getElementById("listaProductos");
+const buscador = document.getElementById("buscador");
+const password = document.getElementById("password");
+const formulario = document.getElementById("formulario");
+
+const editIndex = document.getElementById("editIndex");
+const descripcion = document.getElementById("descripcion");
+const disponible = document.getElementById("disponible");
+const precio = document.getElementById("precio");
+const imagen = document.getElementById("imagen");
+
 /* ADMIN */
 const CONTRASENA = "1234";
 let logeado = false;
@@ -204,27 +224,26 @@ const db = firebase.firestore();
 
 /* CARGA */
 db.collection("productos").orderBy("precio", "asc").onSnapshot(snapshot => {
-  productos = [];
-  snapshot.forEach(doc => productos.push({ id: doc.id, ...doc.data() }));
+  productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
   generarFiltros();
   renderProductos();
 });
 
-/* GENERAR CHECKBOXES */
+/* FILTROS */
 function generarFiltros() {
-  const contenedor = document.getElementById("filtros");
-  contenedor.innerHTML = "<strong>Filtrar por puntos:</strong>";
+  const cont = document.getElementById("filtros");
+  cont.innerHTML = "<strong>Filtrar por puntos:</strong>";
 
-  const precios = [...new Set(productos.map(p => p.precio))].sort((a,b)=>a-b);
-
-  precios.forEach(precio => {
-    const label = document.createElement("label");
-    label.innerHTML = `
-      <input type="checkbox" value="${precio}" onchange="aplicarFiltros()">
-      ${precio} IP
-    `;
-    contenedor.appendChild(label);
-  });
+  [...new Set(productos.map(p => p.precio))]
+    .sort((a,b)=>a-b)
+    .forEach(p => {
+      cont.innerHTML += `
+        <label>
+          <input type="checkbox" value="${p}" onchange="aplicarFiltros()">
+          ${p} IP
+        </label>
+      `;
+    });
 }
 
 /* RENDER */
@@ -232,16 +251,12 @@ function renderProductos() {
   listaProductos.innerHTML = "";
 
   const texto = buscador.value.toLowerCase();
-  const checks = document.querySelectorAll("#filtros input:checked");
-  const preciosSeleccionados = Array.from(checks).map(c => c.value);
+  const precios = [...document.querySelectorAll("#filtros input:checked")]
+                    .map(c => c.value);
 
   productos.forEach(p => {
-    const coincideTexto = p.desc.toLowerCase().includes(texto);
-    const coincidePrecio =
-      preciosSeleccionados.length === 0 ||
-      preciosSeleccionados.includes(String(p.precio));
-
-    if (!coincideTexto || !coincidePrecio) return;
+    if (!p.desc.toLowerCase().includes(texto)) return;
+    if (precios.length && !precios.includes(String(p.precio))) return;
 
     listaProductos.innerHTML += `
       <div class="card">
@@ -249,24 +264,20 @@ function renderProductos() {
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div class="stock">Disponibles: ${p.disp}</div>
-
         ${logeado ? `
         <div class="actions">
           <button class="edit" onclick="editarProducto('${p.id}')">Editar</button>
           <button class="delete" onclick="eliminarProducto('${p.id}')">Eliminar</button>
         </div>` : ""}
-      </div>
-    `;
+      </div>`;
   });
 }
 
-function aplicarFiltros() {
-  renderProductos();
-}
+function aplicarFiltros() { renderProductos(); }
 
 /* CRUD */
 function guardarProducto() {
-  const producto = {
+  const data = {
     desc: descripcion.value,
     disp: Number(disponible.value),
     precio: Number(precio.value),
@@ -274,15 +285,14 @@ function guardarProducto() {
   };
 
   editIndex.value
-    ? db.collection("productos").doc(editIndex.value).update(producto)
-    : db.collection("productos").add(producto);
+    ? db.collection("productos").doc(editIndex.value).update(data)
+    : db.collection("productos").add(data);
 
   editIndex.value = "";
 }
-
 function editarProducto(id) {
-  db.collection("productos").doc(id).get().then(doc => {
-    const p = doc.data();
+  db.collection("productos").doc(id).get().then(d => {
+    const p = d.data();
     editIndex.value = id;
     descripcion.value = p.desc;
     disponible.value = p.disp;
@@ -290,7 +300,6 @@ function editarProducto(id) {
     imagen.value = p.img;
   });
 }
-
 function eliminarProducto(id) {
   if (confirm("¿Eliminar producto?"))
     db.collection("productos").doc(id).delete();
@@ -299,6 +308,8 @@ function eliminarProducto(id) {
 
 </body>
 </html>
+
+
 
 
 
