@@ -368,8 +368,6 @@ db.collection("usuarios").onSnapshot(snapshot => {
 });
 
 
-db.collection("usuarios").onSnapshot(()=> renderUsuarios());
-
 function guardarUsuario(){
   const data = { control:controlUsuario.value, nombre:nombreUsuario.value, puntosActuales:Number(puntosUsuario.value) };
   userId.value ? db.collection("usuarios").doc(userId.value).update(data) : db.collection("usuarios").add(data);
@@ -391,5 +389,6 @@ function cancelarUsuario(){ userId.value=""; controlUsuario.value=""; nombreUsua
 
 </body>
 </html>
+
 
 
