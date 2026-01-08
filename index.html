@@ -46,27 +46,11 @@ body {
   align-items: center;
   justify-content: space-between;
 }
-  .admin-login {
-  margin-right: 10px;
-}
-
-.search {
-  padding: 10px;
-  width: 260px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
 .admin-login {
   display: flex;
   gap: 6px;
 }
-
-.admin-login input {
-  padding: 8px;
-  width: 110px;
-}
-
+.admin-login input { padding: 8px; width: 110px; }
 .admin-login button {
   padding: 8px 12px;
   background: #111827;
@@ -89,96 +73,9 @@ body {
   align-items: center;
   font-size: 14px;
 }
-
-.filtros label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
+.filtros label { display: flex; align-items: center; gap: 5px; }
 
 /* FORM ADMIN */
-.admin-panel {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  max-width: 500px;
-}
-
-/* GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-.card {
-  background: white;
-  border-radius: 16px;
-  padding: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-}
-
-.card img {
-  width: 100%;
-  height: 180px;
-  object-fit: contain;
-  margin-bottom: 12px;
-}
-
-.badge {
-  background: #111827;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  width: fit-content;
-  margin-bottom: 6px;
-}
-
-.stock {
-  font-size: 13px;
-  color: #4b5563;
-}
-
-.actions {
-  margin-top: auto;
-  display: flex;
-  gap: 6px;
-}
-
-.actions button {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-}
-
-.edit { background: #fde68a; }
-.delete { background: #fecaca; }
-
-/* MODAL IMAGEN */
-#modalImagen {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  cursor: zoom-out;
-}
-
-#modalImagen img {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-}
-/* PANEL ADMIN */
 .admin-panel {
   background: white;
   padding: 20px;
@@ -188,150 +85,117 @@ body {
   max-width: 520px;
 }
 
-.admin-panel h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 18px;
-  font-weight: 700;
-}
-
+.admin-panel h2 { margin:0 0 15px; font-size:18px; font-weight:700; }
 .admin-panel input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
+  width:100%;
+  padding:10px;
+  margin-bottom:12px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  font-size:14px;
 }
+.admin-panel input:focus { border-color:#2563eb; outline:none; }
 
-.admin-panel input:focus {
-  border-color: #2563eb;
-  outline: none;
+/* GRID */
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; }
+.card {
+  background:white;
+  border-radius:16px;
+  padding:15px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  display:flex;
+  flex-direction:column;
 }
+.card img { width:100%; height:180px; object-fit:contain; margin-bottom:12px; }
+.badge { background:#111827; color:white; padding:6px 10px; border-radius:999px; font-size:12px; width:fit-content; margin-bottom:6px; }
+.stock { font-size:13px; color:#4b5563; }
+.actions { margin-top:auto; display:flex; gap:6px; }
+.actions button { flex:1; padding:8px; border-radius:6px; border:none; cursor:pointer; }
+.edit { background:#fde68a; }
+.delete { background:#fecaca; }
+
+/* MODAL IMAGEN */
+#modalImagen {
+  position: fixed; inset:0; background: rgba(0,0,0,0.85);
+  display:none; justify-content:center; align-items:center; z-index:9999; cursor:zoom-out;
+}
+#modalImagen img { max-width:90%; max-height:90%; border-radius:12px; box-shadow:0 20px 40px rgba(0,0,0,0.4); }
+
 /* TABS */
-.tabs {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 25px;
-}
-
+.tabs { display:flex; gap:10px; justify-content:center; margin-bottom:25px; }
 .tab {
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: white;
-  cursor: pointer;
-  font-weight: 600;
+  padding:10px 18px;
+  border-radius:999px;
+  border:1px solid #d1d5db;
+  background:white;
+  cursor:pointer;
+  font-weight:600;
 }
+.tab.active { background:#2563eb; color:white; border-color:#2563eb; }
 
-.tab.active {
-  background: #2563eb;
-  color: white;
-  border-color: #2563eb;
-}
 .tabla-puntos {
-  width: 100%;
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  border-collapse: collapse;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  width:100%;
+  background:white;
+  border-radius:12px;
+  overflow:hidden;
+  border-collapse:collapse;
+  box-shadow:0 8px 20px rgba(0,0,0,0.08);
 }
-
 .tabla-puntos th {
-  background: #111827;
-  color: white;
-  text-align: left;
-  padding: 12px;
-  font-size: 14px;
+  background:#111827;
+  color:white;
+  text-align:left;
+  padding:12px;
+  font-size:14px;
 }
+.tabla-puntos td { padding:12px; border-bottom:1px solid #e5e7eb; font-size:14px; }
 
-.tabla-puntos td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 14px;
-}
+.save { background:#2563eb; color:white; border-radius:8px; padding:10px; border:none; cursor:pointer; }
+.cancel { background:#e5e7eb; border-radius:8px; padding:10px; border:none; cursor:pointer; }
 
-.save {
-  background: #2563eb;
-  color: white;
-  border-radius: 8px;
-  padding: 10px;
-  border: none;
-  cursor: pointer;
-}
+.admin-only { display:none; }
+.admin-mode .admin-only { display:table-cell; }
 
-.cancel {
-  background: #e5e7eb;
-  border-radius: 8px;
-  padding: 10px;
-  border: none;
-  cursor: pointer;
-}
-
-.admin-only {
-  display: none;
-}
-
-.admin-mode .admin-only {
-  display: table-cell;
-}
-
-
-  
 </style>
 </head>
-
 <body>
 
 <h1 class="titulo">🎁 Tienda de Premios IP</h1>
-  <div class="tabs">
+
+<div class="tabs">
   <button class="tab active" onclick="mostrarSeccion('premios', this)">🎁 Premios</button>
   <button class="tab" onclick="mostrarSeccion('puntos', this)">💰 Puntos IP</button>
 </div>
 
-<!-------------------------------------------------------Seccion Premios------------------------->
-  <div id="seccion-premios">
-<div class="top-bar">
-  <!-- IZQUIERDA -->
-  <div>
-    <input id="buscador"
-           class="search"
-           placeholder="Buscar premio..."
-           onkeyup="aplicarFiltros()">
+<!-- SECCION PREMIOS -->
+<div id="seccion-premios">
+  <div class="top-bar">
+    <div>
+      <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="aplicarFiltros()">
+    </div>
+    <div class="admin-login">
+      <input type="password" id="password" placeholder="Admin">
+      <button onclick="login()">OK</button>
+    </div>
   </div>
 
-  <!-- DERECHA -->
-  <div class="admin-login">
-    <input type="password" id="password" placeholder="Admin">
-    <button onclick="login()">OK</button>
+  <div id="filtros" class="filtros"><strong>Filtrar por puntos:</strong></div>
+
+  <div id="formulario" class="admin-panel" style="display:none;">
+    <input type="hidden" id="editIndex">
+    <input id="descripcion" placeholder="Descripción">
+    <input id="disponible" type="number" placeholder="Disponible">
+    <input id="precio" type="number" placeholder="Puntos IP">
+    <input id="imagen" placeholder="URL imagen">
+    <button onclick="guardarProducto()">Guardar</button>
   </div>
+
+  <div id="listaProductos" class="grid"></div>
 </div>
 
-
-<div id="filtros" class="filtros">
-  <strong>Filtrar por puntos:</strong>
-</div>
-
-<div id="formulario" class="admin-panel" style="display:none;">
-  <input type="hidden" id="editIndex">
-  <input id="descripcion" placeholder="Descripción">
-  <input id="disponible" type="number" placeholder="Disponible">
-  <input id="precio" type="number" placeholder="Puntos IP">
-  <input id="imagen" placeholder="URL imagen">
-  <button onclick="guardarProducto()">Guardar</button>
-</div>
-
-<div id="listaProductos" class="grid"></div>
-</div> <!-- FIN seccion-premios -->
-  
-
-<!------------------------------------- seccion de puntos------------------------------------->
-  <!-- ================= PUNTOS IP ================= -->
+<!-- SECCION PUNTOS -->
 <div id="seccion-puntos" style="display:none;">
   <h2 style="margin-bottom:15px;">👤 Puntos IP</h2>
-
   <table class="tabla-puntos">
     <thead>
       <tr>
@@ -344,29 +208,23 @@ body {
     <tbody id="listaPuntos"></tbody>
   </table>
 
-  <!-- FORM ADMIN USUARIOS -->
   <div id="formUsuarios" class="admin-panel" style="display:none;">
     <h2>Administrar usuarios</h2>
-
     <input type="hidden" id="userId">
     <input id="controlUsuario" placeholder="Número de control">
     <input id="nombreUsuario" placeholder="Nombre">
     <input id="puntosUsuario" type="number" placeholder="Puntos IP">
-
     <button onclick="guardarUsuario()" class="save">Guardar</button>
     <button onclick="cancelarUsuario()" class="cancel">Cancelar</button>
   </div>
 </div>
 
-
-
+<!-- MODAL IMAGEN -->
+<div id="modalImagen" onclick="cerrarImagen()">
+  <img id="imagenGrande">
 </div>
 
-
-
-
-  <script>
-    
+<script>
 /* DOM */
 const listaProductos = document.getElementById("listaProductos");
 const buscador = document.getElementById("buscador");
@@ -378,19 +236,29 @@ const descripcion = document.getElementById("descripcion");
 const disponible = document.getElementById("disponible");
 const precio = document.getElementById("precio");
 const imagen = document.getElementById("imagen");
-    const userId = document.getElementById("userId");
+
+const listaPuntos = document.getElementById("listaPuntos");
+const userId = document.getElementById("userId");
 const controlUsuario = document.getElementById("controlUsuario");
 const nombreUsuario = document.getElementById("nombreUsuario");
 const puntosUsuario = document.getElementById("puntosUsuario");
-
 
 /* ADMIN */
 const CONTRASENA = "1234";
 let logeado = false;
 let productos = [];
 
+/* FIREBASE */
+firebase.initializeApp({
+  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
+  authDomain: "catalogo-ee5b7.firebaseapp.com",
+  projectId: "catalogo-ee5b7"
+});
+const db = firebase.firestore();
+
+/* LOGIN */
 function login() {
-  if (password.value === CONTRASENA) {
+  if(password.value === CONTRASENA){
     logeado = true;
     formulario.style.display = "block";
     alert("Modo administrador activo");
@@ -399,85 +267,61 @@ function login() {
   }
 }
 
-/* FIREBASE */
-firebase.initializeApp({
-  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
-  authDomain: "catalogo-ee5b7.firebaseapp.com",
-  projectId: "catalogo-ee5b7"
-});
+/* TABS */
+function mostrarSeccion(seccion, btn){
+  document.getElementById("seccion-premios").style.display = seccion==='premios'?'block':'none';
+  document.getElementById("seccion-puntos").style.display = seccion==='puntos'?'block':'none';
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  btn.classList.add("active");
+}
 
-const db = firebase.firestore();
-
-/* CARGA */
-db.collection("productos").orderBy("precio", "asc").onSnapshot(snapshot => {
-  productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+/* PRODUCTOS */
+db.collection("productos").orderBy("precio","asc").onSnapshot(snapshot=>{
+  productos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
   generarFiltros();
   renderProductos();
 });
 
-/* FILTROS */
-function generarFiltros() {
+function generarFiltros(){
   const cont = document.getElementById("filtros");
   cont.innerHTML = "<strong>Filtrar por puntos:</strong>";
-
-  [...new Set(productos.map(p => p.precio))]
-    .sort((a,b)=>a-b)
-    .forEach(p => {
-      cont.innerHTML += `
-        <label>
-          <input type="checkbox" value="${p}" onchange="aplicarFiltros()">
-          ${p} IP
-        </label>
-      `;
-    });
+  [...new Set(productos.map(p=>p.precio))].sort((a,b)=>a-b).forEach(p=>{
+    cont.innerHTML += `<label><input type="checkbox" value="${p}" onchange="aplicarFiltros()">${p} IP</label>`;
+  });
 }
 
-/* RENDER */
-function renderProductos() {
+function renderProductos(){
   listaProductos.innerHTML = "";
-
   const texto = buscador.value.toLowerCase();
-  const precios = [...document.querySelectorAll("#filtros input:checked")]
-                    .map(c => c.value);
+  const precios = [...document.querySelectorAll("#filtros input:checked")].map(c=>c.value);
 
-  productos.forEach(p => {
-    if (!p.desc.toLowerCase().includes(texto)) return;
-    if (precios.length && !precios.includes(String(p.precio))) return;
+  productos.forEach(p=>{
+    if(!p.desc.toLowerCase().includes(texto)) return;
+    if(precios.length && !precios.includes(String(p.precio))) return;
 
     listaProductos.innerHTML += `
       <div class="card">
-        <img src="${p.img}" onclick="abrirImagen('${p.img}')" style="cursor: zoom-in;">
+        <img src="${p.img}" onclick="abrirImagen('${p.img}')" style="cursor:zoom-in;">
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div class="stock">Disponibles: ${p.disp}</div>
-        ${logeado ? `
-        <div class="actions">
+        ${logeado?`<div class="actions">
           <button class="edit" onclick="editarProducto('${p.id}')">Editar</button>
           <button class="delete" onclick="eliminarProducto('${p.id}')">Eliminar</button>
-        </div>` : ""}
+        </div>`:""}
       </div>`;
   });
 }
 
-function aplicarFiltros() { renderProductos(); }
+function aplicarFiltros(){ renderProductos(); }
 
-/* CRUD */
-function guardarProducto() {
-  const data = {
-    desc: descripcion.value,
-    disp: Number(disponible.value),
-    precio: Number(precio.value),
-    img: imagen.value
-  };
-
-  editIndex.value
-    ? db.collection("productos").doc(editIndex.value).update(data)
-    : db.collection("productos").add(data);
-
-  editIndex.value = "";
+function guardarProducto(){
+  const data = { desc: descripcion.value, disp:Number(disponible.value), precio:Number(precio.value), img:imagen.value };
+  editIndex.value ? db.collection("productos").doc(editIndex.value).update(data) : db.collection("productos").add(data);
+  editIndex.value="";
 }
-function editarProducto(id) {
-  db.collection("productos").doc(id).get().then(d => {
+function editarProducto(id){
+  db.collection("productos").doc(id).get().then(d=>{
     const p = d.data();
     editIndex.value = id;
     descripcion.value = p.desc;
@@ -486,76 +330,44 @@ function editarProducto(id) {
     imagen.value = p.img;
   });
 }
-function eliminarProducto(id) {
-  if (confirm("¿Eliminar producto?"))
-    db.collection("productos").doc(id).delete();
-}
-  function abrirImagen(src) {
+function eliminarProducto(id){ if(confirm("¿Eliminar producto?")) db.collection("productos").doc(id).delete(); }
+
+function abrirImagen(src){
   const modal = document.getElementById("modalImagen");
   const img = document.getElementById("imagenGrande");
-  img.src = src;
-  modal.style.display = "flex";
+  img.src = src; modal.style.display="flex";
 }
+function cerrarImagen(){ document.getElementById("modalImagen").style.display="none"; }
 
-function cerrarImagen() {
-  document.getElementById("modalImagen").style.display = "none";
-}
-    function mostrarSeccion(seccion, btn) {
-  document.getElementById("seccion-premios").style.display =
-    seccion === "premios" ? "block" : "none";
-
-  document.getElementById("seccion-puntos").style.display =
-    seccion === "puntos" ? "block" : "none";
-
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  btn.classList.add("active");
-}
-
-const listaPuntos = document.getElementById("listaPuntos");
-
-/* MOSTRAR USUARIOS */
-function renderUsuarios() {
-  db.collection("usuarios").get().then(snapshot => {
+/* USUARIOS */
+function renderUsuarios(){
+  db.collection("usuarios").get().then(snapshot=>{
     listaPuntos.innerHTML = "";
-
-    snapshot.forEach(doc => {
+    snapshot.forEach(doc=>{
       const u = doc.data();
-
       listaPuntos.innerHTML += `
         <tr>
           <td>${u.control}</td>
           <td>${u.nombre}</td>
           <td>${u.puntosActuales}</td>
-          ${logeado ? `
-          <td class="admin-only">
+          ${logeado?`<td class="admin-only">
             <button onclick="editarUsuario('${doc.id}')">✏️</button>
             <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
-          </td>` : ""}
-        </tr>
-      `;
+          </td>`:""}
+        </tr>`;
     });
   });
 }
 
+db.collection("usuarios").onSnapshot(()=> renderUsuarios());
 
-/* GUARDAR / EDITAR */
-function guardarUsuario() {
-  const data = {
-    control: controlUsuario.value,
-    nombre: nombreUsuario.value,
-    puntosActuales: Number(puntosUsuario.value)
-  };
-
-  userId.value
-    ? db.collection("usuarios").doc(userId.value).update(data)
-    : db.collection("usuarios").add(data);
-
+function guardarUsuario(){
+  const data = { control:controlUsuario.value, nombre:nombreUsuario.value, puntosActuales:Number(puntosUsuario.value) };
+  userId.value ? db.collection("usuarios").doc(userId.value).update(data) : db.collection("usuarios").add(data);
   cancelarUsuario();
 }
-
-/* EDITAR */
-function editarUsuario(id) {
-  db.collection("usuarios").doc(id).get().then(doc => {
+function editarUsuario(id){
+  db.collection("usuarios").doc(id).get().then(doc=>{
     const u = doc.data();
     userId.value = id;
     controlUsuario.value = u.control;
@@ -563,66 +375,11 @@ function editarUsuario(id) {
     puntosUsuario.value = u.puntosActuales;
   });
 }
-
-/* ELIMINAR */
-function eliminarUsuario(id) {
-  if (confirm("¿Eliminar usuario?")) {
-    db.collection("usuarios").doc(id).delete();
-  }
-}
-
-/* LIMPIAR */
-function cancelarUsuario() {
-  userId.value = "";
-  controlUsuario.value = "";
-  nombreUsuario.value = "";
-  puntosUsuario.value = "";
-}
-    function renderUsuarios(snapshot) {
-  listaPuntos.innerHTML = "";
-
-  snapshot.forEach(doc => {
-    const u = doc.data();
-
-    listaPuntos.innerHTML += `
-      <tr>
-        <td>${u.control}</td>
-        <td>${u.nombre}</td>
-        <td>${u.puntosActuales}</td>
-        ${logeado ? `
-        <td class="admin-only">
-          <button onclick="editarUsuario('${doc.id}')">✏️</button>
-          <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
-        </td>` : ""}
-      </tr>
-    `;
-  });
-}
-
-db.collection("usuarios").onSnapshot(snapshot => {
-  renderUsuarios(snapshot.docs.map(d => ({id: d.id, ...d.data()})));
-});
-
-
+function eliminarUsuario(id){ if(confirm("¿Eliminar usuario?")) db.collection("usuarios").doc(id).delete(); }
+function cancelarUsuario(){ userId.value=""; controlUsuario.value=""; nombreUsuario.value=""; puntosUsuario.value=""; }
 
 </script>
-  
-<!-- MODAL IMAGEN -->
-<div id="modalImagen" onclick="cerrarImagen()">
-  <img id="imagenGrande">
-</div>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
