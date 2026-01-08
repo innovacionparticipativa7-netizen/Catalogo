@@ -258,14 +258,18 @@ const db = firebase.firestore();
 
 /* LOGIN */
 function login() {
-  if(password.value === CONTRASENA){
+  if (password.value === CONTRASENA) {
     logeado = true;
     formulario.style.display = "block";
     alert("Modo administrador activo");
     renderProductos();
-    renderUsuarios();
+    // recarga tabla de usuarios para mostrar botones admin
+    db.collection("usuarios").get().then(snapshot => {
+      snapshot.forEach(doc => { /* nada, solo dispara el onSnapshot que actualiza la tabla */ });
+    });
   }
 }
+
 
 /* TABS */
 function mostrarSeccion(seccion, btn){
@@ -340,24 +344,29 @@ function abrirImagen(src){
 function cerrarImagen(){ document.getElementById("modalImagen").style.display="none"; }
 
 /* USUARIOS */
-function renderUsuarios(){
-  db.collection("usuarios").get().then(snapshot=>{
-    listaPuntos.innerHTML = "";
-    snapshot.forEach(doc=>{
-      const u = doc.data();
-      listaPuntos.innerHTML += `
-        <tr>
-          <td>${u.control}</td>
-          <td>${u.nombre}</td>
-          <td>${u.puntosActuales}</td>
-          ${logeado?`<td class="admin-only">
-            <button onclick="editarUsuario('${doc.id}')">✏️</button>
-            <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
-          </td>`:""}
-        </tr>`;
-    });
+const listaPuntos = document.getElementById("listaPuntos");
+
+db.collection("usuarios").onSnapshot(snapshot => {
+  listaPuntos.innerHTML = "";
+
+  snapshot.forEach(doc => {
+    const u = doc.data();
+
+    listaPuntos.innerHTML += `
+      <tr>
+        <td>${u.control}</td>
+        <td>${u.nombre}</td>
+        <td>${u.puntosActuales}</td>
+        ${logeado ? `
+        <td class="admin-only">
+          <button onclick="editarUsuario('${doc.id}')">✏️</button>
+          <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
+        </td>` : ""}
+      </tr>
+    `;
   });
-}
+});
+
 
 db.collection("usuarios").onSnapshot(()=> renderUsuarios());
 
@@ -382,4 +391,5 @@ function cancelarUsuario(){ userId.value=""; controlUsuario.value=""; nombreUsua
 
 </body>
 </html>
+
 
