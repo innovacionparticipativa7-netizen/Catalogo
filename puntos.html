@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Puntos IP</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f6f8;
+  padding: 30px;
+}
+
+h1 {
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  background: white;
+  border-collapse: collapse;
+}
+
+th {
+  background: #111827;
+  color: white;
+  padding: 10px;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.admin {
+  margin: 20px 0;
+}
+</style>
+</head>
+
+<body>
+
+<a href="index.html">⬅ Volver a premios</a>
+
+<h1>👤 Puntos IP</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Control</th>
+      <th>Nombre</th>
+      <th>Puntos</th>
+    </tr>
+  </thead>
+  <tbody id="listaPuntos"></tbody>
+</table>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
+  authDomain: "catalogo-ee5b7.firebaseapp.com",
+  projectId: "catalogo-ee5b7"
+});
+
+const db = firebase.firestore();
+const listaPuntos = document.getElementById("listaPuntos");
+
+db.collection("usuarios").onSnapshot(snapshot => {
+  listaPuntos.innerHTML = "";
+
+  snapshot.forEach(doc => {
+    const u = doc.data();
+    listaPuntos.innerHTML += `
+      <tr>
+        <td>${u.control}</td>
+        <td>${u.nombre}</td>
+        <td>${u.puntosActuales}</td>
+      </tr>
+    `;
+  });
+});
+</script>
+
+</body>
+</html>
