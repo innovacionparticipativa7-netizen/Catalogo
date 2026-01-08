@@ -253,8 +253,10 @@ body {
   </div>
 </div>
 <div id="seccion-usuarios" style="display:none;">
-
   <h2>Puntos de usuarios</h2>
+<button class="admin-only" onclick="nuevoUsuario()">
+  ➕ Nuevo usuario
+</button>
 
   <!-- FORMULARIO USUARIOS (ADMIN) -->
   <div id="formUsuarios" class="admin-panel" style="display:none;">
@@ -321,21 +323,14 @@ let logeado = false;
 function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
-
-    /*SE MUESTRA EL FORMULARIO*/
-    document.getElementById("formulario").style.display = "block";
-    document.getElementById("formUsuarios").style.display = "block";
     document.body.classList.add("admin-mode");
-
-
-    /*SE REDIBUJAN LAS CARDS CON BOTONES*/
-    renderProductos();
-
-    alert("Modo administrador activado");
+    document.getElementById("formUsuarios").style.display = "none";
+    alert("Modo administrador activo");
   } else {
     alert("Contraseña incorrecta");
   }
 }
+
 
 
 /* ================= FIREBASE ================= */
@@ -599,7 +594,19 @@ function cancelarUsuario() { ... }
 
 </script>
 
-  
+  <script>
+function nuevoUsuario() {
+  userId.value = "";
+  controlUsuario.value = "";
+  nombreUsuario.value = "";
+  puntosAcumulados.value = 0;
+  puntosActuales.value = 0;
+  comentariosUsuario.value = "";
+
+  document.getElementById("formUsuarios").style.display = "block";
+}
+</script>
+
 </script>
 
   <!-- MODAL IMAGEN -->
@@ -611,6 +618,7 @@ function cancelarUsuario() { ... }
 
 </body>
 </html>
+
 
 
 
