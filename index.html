@@ -44,6 +44,10 @@ body {
   flex-wrap: wrap;
   margin-bottom: 15px;
   align-items: center;
+  justify-content: space-between;
+}
+  .admin-login {
+  margin-right: 10px;
 }
 
 .search {
@@ -163,13 +167,21 @@ body {
 <h1 class="titulo">🎁 Tienda de Premios IP</h1>
 
 <div class="top-bar">
-  <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="aplicarFiltros()">
+  <!-- IZQUIERDA -->
+  <div>
+    <input id="buscador"
+           class="search"
+           placeholder="Buscar premio..."
+           onkeyup="aplicarFiltros()">
+  </div>
 
+  <!-- DERECHA -->
   <div class="admin-login">
     <input type="password" id="password" placeholder="Admin">
     <button onclick="login()">OK</button>
   </div>
 </div>
+
 
 <div id="filtros" class="filtros">
   <strong>Filtrar por puntos:</strong>
@@ -308,6 +320,7 @@ function eliminarProducto(id) {
 
 </body>
 </html>
+
 
 
 
