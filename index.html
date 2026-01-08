@@ -1,146 +1,152 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Catálogo de Premios IP</title>
+<meta charset="UTF-8">
+<title>Catálogo de Premios IP</title>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <style>
-    * { box-sizing: border-box; }
+<style>
+* { box-sizing: border-box; }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 30px;
-    }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 30px;
+}
 
-    .titulo {
-      text-align: center;
-      font-size: 48px;
-      font-weight: 800;
-      margin: 30px 0 40px;
-      color: #1e293b;
-    }
+.titulo {
+  text-align: center;
+  font-size: 48px;
+  font-weight: 800;
+  margin: 30px 0 40px;
+  color: #1e293b;
+}
 
-    .titulo::after {
-      content: "";
-      display: block;
-      width: 120px;
-      height: 5px;
-      background: linear-gradient(90deg, #2563eb, #9333ea);
-      margin: 15px auto 0;
-      border-radius: 10px;
-    }
+.titulo::after {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 5px;
+  background: linear-gradient(90deg, #2563eb, #9333ea);
+  margin: 15px auto 0;
+  border-radius: 10px;
+}
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
+.top-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  align-items: center;
+}
 
-    .search, select {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
+.search {
+  padding: 10px;
+  width: 260px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
 
-    .admin-login {
-      display: flex;
-      gap: 6px;
-    }
+.admin-login {
+  display: flex;
+  gap: 6px;
+}
 
-    .admin-login input {
-      padding: 8px;
-      width: 110px;
-    }
+.admin-login input {
+  padding: 8px;
+  width: 110px;
+}
 
-    .admin-login button {
-      padding: 8px 12px;
-      background: #111827;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+.admin-login button {
+  padding: 8px 12px;
+  background: #111827;
+  color: white;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
 
-    .admin-panel {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 25px;
-      max-width: 500px;
-    }
+/* FILTROS */
+.filtros {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  margin-bottom: 25px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 14px;
+}
 
-    .admin-panel input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
+.filtros label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
-    }
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 15px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-    }
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+}
 
-    .card img {
-      width: 100%;
-      height: 180px;
-      object-fit: contain;
-      margin-bottom: 12px;
-      cursor: pointer;
-    }
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
 
-    .badge {
-      background: #111827;
-      color: white;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      width: fit-content;
-      margin-bottom: 6px;
-    }
+.badge {
+  background: #111827;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  width: fit-content;
+  margin-bottom: 6px;
+}
 
-    .stock {
-      font-size: 13px;
-      color: #4b5563;
-    }
+.stock {
+  font-size: 13px;
+  color: #4b5563;
+}
 
-    .actions {
-      margin-top: auto;
-      display: flex;
-      gap: 6px;
-    }
+.actions {
+  margin-top: auto;
+  display: flex;
+  gap: 6px;
+}
 
-    .actions button {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+.actions button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
 
-    .edit { background: #fde68a; }
-    .delete { background: #fecaca; }
-  </style>
+.edit { background: #fde68a; }
+.delete { background: #fecaca; }
+</style>
 </head>
 
 <body>
@@ -150,14 +156,15 @@
 <div class="top-bar">
   <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="aplicarFiltros()">
 
-  <select id="filtroPrecio" onchange="aplicarFiltros()">
-    <option value="todos">Todos los precios</option>
-  </select>
-
   <div class="admin-login">
     <input type="password" id="password" placeholder="Admin">
     <button onclick="login()">OK</button>
   </div>
+</div>
+
+<!-- FILTROS DE PRECIOS -->
+<div id="filtros" class="filtros">
+  <strong>Filtrar por puntos:</strong>
 </div>
 
 <div id="formulario" class="admin-panel" style="display:none;">
@@ -172,12 +179,11 @@
 <div id="listaProductos" class="grid"></div>
 
 <script>
-/* CONFIG */
+/* ADMIN */
 const CONTRASENA = "1234";
 let logeado = false;
 let productos = [];
 
-/* LOGIN */
 function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
@@ -196,21 +202,28 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 
-/* CARGAR PRODUCTOS */
-db.collection("productos").orderBy("precio", "asc").onSnapshot(snap => {
-  productos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  generarFiltroPrecios();
+/* CARGA */
+db.collection("productos").orderBy("precio", "asc").onSnapshot(snapshot => {
+  productos = [];
+  snapshot.forEach(doc => productos.push({ id: doc.id, ...doc.data() }));
+  generarFiltros();
   renderProductos();
 });
 
-/* FILTRO DE PRECIOS REAL */
-function generarFiltroPrecios() {
-  const select = filtroPrecio;
+/* GENERAR CHECKBOXES */
+function generarFiltros() {
+  const contenedor = document.getElementById("filtros");
+  contenedor.innerHTML = "<strong>Filtrar por puntos:</strong>";
+
   const precios = [...new Set(productos.map(p => p.precio))].sort((a,b)=>a-b);
 
-  select.innerHTML = `<option value="todos">Todos los precios</option>`;
-  precios.forEach(p => {
-    select.innerHTML += `<option value="${p}">${p} IP</option>`;
+  precios.forEach(precio => {
+    const label = document.createElement("label");
+    label.innerHTML = `
+      <input type="checkbox" value="${precio}" onchange="aplicarFiltros()">
+      ${precio} IP
+    `;
+    contenedor.appendChild(label);
   });
 }
 
@@ -219,11 +232,16 @@ function renderProductos() {
   listaProductos.innerHTML = "";
 
   const texto = buscador.value.toLowerCase();
-  const precioSel = filtroPrecio.value;
+  const checks = document.querySelectorAll("#filtros input:checked");
+  const preciosSeleccionados = Array.from(checks).map(c => c.value);
 
   productos.forEach(p => {
-    if (!p.desc.toLowerCase().includes(texto)) return;
-    if (precioSel !== "todos" && p.precio != precioSel) return;
+    const coincideTexto = p.desc.toLowerCase().includes(texto);
+    const coincidePrecio =
+      preciosSeleccionados.length === 0 ||
+      preciosSeleccionados.includes(String(p.precio));
+
+    if (!coincideTexto || !coincidePrecio) return;
 
     listaProductos.innerHTML += `
       <div class="card">
@@ -231,6 +249,7 @@ function renderProductos() {
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div class="stock">Disponibles: ${p.disp}</div>
+
         ${logeado ? `
         <div class="actions">
           <button class="edit" onclick="editarProducto('${p.id}')">Editar</button>
@@ -280,8 +299,5 @@ function eliminarProducto(id) {
 
 </body>
 </html>
-
-
-
 
 
