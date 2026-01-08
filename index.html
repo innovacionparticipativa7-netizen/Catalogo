@@ -348,6 +348,16 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 const listaProductos = document.getElementById("listaProductos");
+const listaUsuarios = document.getElementById("listaUsuarios");
+const password = document.getElementById("password");
+const buscador = document.getElementById("buscador");
+
+const controlUsuario = document.getElementById("controlUsuario");
+const nombreUsuario = document.getElementById("nombreUsuario");
+const puntosAcumulados = document.getElementById("puntosAcumulados");
+const puntosActuales = document.getElementById("puntosActuales");
+const comentariosUsuario = document.getElementById("comentariosUsuario");
+const userId = document.getElementById("userId");
 
 let productos = [];
 
@@ -624,6 +634,7 @@ function nuevoUsuario() {
 
 </body>
 </html>
+
 
 
 
