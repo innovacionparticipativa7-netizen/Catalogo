@@ -287,9 +287,13 @@ body {
 
 <h1 class="titulo">🎁 Tienda de Premios IP</h1>
   <div class="tabs">
-  <button class="tab active" onclick="mostrarSeccion('premios', this)">🎁 Premios</button>
-  <button class="tab" onclick="mostrarSeccion('puntos', this)">💰 Puntos IP</button>
+  <button class="tab active">🎁 Premios</button>
+  <a href="puntos.html" class="tab" style="text-decoration:none;">
+    💰 Puntos IP
+  </a>
 </div>
+
+
 
 <!-------------------------------------------------------Seccion Premios------------------------->
   <div id="seccion-premios">
@@ -328,36 +332,7 @@ body {
   
 
 <!------------------------------------- seccion de puntos------------------------------------->
-  <!-- ================= PUNTOS IP ================= -->
-<div id="seccion-puntos" style="display:none;">
-  <h2 style="margin-bottom:15px;">👤 Puntos IP</h2>
-
-  <table class="tabla-puntos">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Puntos</th>
-        <th class="admin-only">Acciones</th>
-      </tr>
-    </thead>
-    <tbody id="listaPuntos"></tbody>
-  </table>
-
-  <!-- FORM ADMIN USUARIOS -->
-  <div id="formUsuarios" class="admin-panel" style="display:none;">
-    <h2>Administrar usuarios</h2>
-
-    <input type="hidden" id="userId">
-    <input id="controlUsuario" placeholder="Número de control">
-    <input id="nombreUsuario" placeholder="Nombre">
-    <input id="puntosUsuario" type="number" placeholder="Puntos IP">
-
-    <button onclick="guardarUsuario()" class="save">Guardar</button>
-    <button onclick="cancelarUsuario()" class="cancel">Cancelar</button>
-  </div>
-</div>
-
+ 
 
 
 </div>
@@ -511,99 +486,6 @@ function cerrarImagen() {
   btn.classList.add("active");
 }
 
-const listaPuntos = document.getElementById("listaPuntos");
-
-/* MOSTRAR USUARIOS */
-function renderUsuarios() {
-  db.collection("usuarios").get().then(snapshot => {
-    listaPuntos.innerHTML = "";
-
-    snapshot.forEach(doc => {
-      const u = doc.data();
-
-      listaPuntos.innerHTML += `
-        <tr>
-          <td>${u.control}</td>
-          <td>${u.nombre}</td>
-          <td>${u.puntosActuales}</td>
-          ${logeado ? `
-          <td class="admin-only">
-            <button onclick="editarUsuario('${doc.id}')">✏️</button>
-            <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
-          </td>` : ""}
-        </tr>
-      `;
-    });
-  });
-}
-
-
-/* GUARDAR / EDITAR */
-function guardarUsuario() {
-  const data = {
-    control: controlUsuario.value,
-    nombre: nombreUsuario.value,
-    puntosActuales: Number(puntosUsuario.value)
-  };
-
-  userId.value
-    ? db.collection("usuarios").doc(userId.value).update(data)
-    : db.collection("usuarios").add(data);
-
-  cancelarUsuario();
-}
-
-/* EDITAR */
-function editarUsuario(id) {
-  db.collection("usuarios").doc(id).get().then(doc => {
-    const u = doc.data();
-    userId.value = id;
-    controlUsuario.value = u.control;
-    nombreUsuario.value = u.nombre;
-    puntosUsuario.value = u.puntosActuales;
-  });
-}
-
-/* ELIMINAR */
-function eliminarUsuario(id) {
-  if (confirm("¿Eliminar usuario?")) {
-    db.collection("usuarios").doc(id).delete();
-  }
-}
-
-/* LIMPIAR */
-function cancelarUsuario() {
-  userId.value = "";
-  controlUsuario.value = "";
-  nombreUsuario.value = "";
-  puntosUsuario.value = "";
-}
-    function renderUsuarios(snapshot) {
-  listaPuntos.innerHTML = "";
-
-  snapshot.forEach(doc => {
-    const u = doc.data();
-
-    listaPuntos.innerHTML += `
-      <tr>
-        <td>${u.control}</td>
-        <td>${u.nombre}</td>
-        <td>${u.puntosActuales}</td>
-        ${logeado ? `
-        <td class="admin-only">
-          <button onclick="editarUsuario('${doc.id}')">✏️</button>
-          <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
-        </td>` : ""}
-      </tr>
-    `;
-  });
-}
-
-db.collection("usuarios").onSnapshot(snapshot => {
-  renderUsuarios(snapshot.docs.map(d => ({id: d.id, ...d.data()})));
-});
-
-
 
 </script>
   
@@ -614,6 +496,7 @@ db.collection("usuarios").onSnapshot(snapshot => {
 
 </body>
 </html>
+
 
 
 
