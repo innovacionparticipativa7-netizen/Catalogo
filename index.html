@@ -184,8 +184,8 @@ body {
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="mostrarSeccion('premios')">🎁 Premios</button>
-  <button class="tab" onclick="mostrarSeccion('usuarios')">👤 Usuarios</button>
+  <button class="tab active" onclick="mostrarSeccion('premios', this)">🎁 Premios</button>
+  <button class="tab" onclick="mostrarSeccion('usuarios', this)">👤 Usuarios</button>
 </div>
 
 <!-- ================= PREMIOS ================= -->
@@ -345,10 +345,32 @@ function abrirImagen(url) {
 function cerrarModal() {
   modalImagen.style.display = "none";
 }
+  function mostrarSeccion(seccion, btn) {
+  document.getElementById("seccion-premios").style.display =
+    seccion === "premios" ? "block" : "none";
+
+  document.getElementById("seccion-usuarios").style.display =
+    seccion === "usuarios" ? "block" : "none";
+
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+}
+function generarFiltros() {}
+function aplicarFiltros() {}
+function guardarProducto() {}
+function editarProducto() {}
+function eliminarProducto() {}
+function cancelarEdicion() {}
+function guardarUsuario() {}
+function editarUsuario() {}
+function eliminarUsuario() {}
+function cancelarUsuario() {}
+
 </script>
 
 </body>
 </html>
+
 
 
 
