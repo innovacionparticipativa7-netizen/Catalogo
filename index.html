@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="icon" href="Favicon.png" type="image/png">
 
 <style>
 * { box-sizing: border-box; }
@@ -21,157 +20,122 @@ body {
   padding: 30px;
 }
 
-/* HEADER */
 .header {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 20px;
+  justify-content: center;
+  gap: 15px;
   margin-bottom: 30px;
 }
-.logo { width: 90px; }
+
+.logo {
+  width: 80px;
+}
+
 .titulo {
   font-size: 48px;
   font-weight: 800;
   color: #1e293b;
 }
 
-/* TABS */
 .tabs {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
 }
+
 .tab {
-  padding: 10px 18px;
+  padding: 10px 16px;
   border-radius: 999px;
-  border: 1px solid #ccc;
   background: white;
+  border: 1px solid #ccc;
   cursor: pointer;
 }
+
 .tab.active {
   background: #2563eb;
   color: white;
 }
 
-/* TOP BAR */
 .top-bar {
   display: flex;
   justify-content: space-between;
-  flex-wrap: wrap;
   margin-bottom: 15px;
 }
+
 .search {
   padding: 10px;
   width: 260px;
   border-radius: 8px;
   border: 1px solid #ccc;
 }
-.admin-login input {
+
+.admin-login input, .admin-login button {
   padding: 8px;
-  width: 110px;
-}
-.admin-login button {
-  padding: 8px 12px;
-  background: #111827;
-  color: white;
-  border: none;
-  border-radius: 6px;
 }
 
-/* FILTROS */
-.filtros {
-  background: white;
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-/* GRID */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 20px;
 }
+
 .card {
   background: white;
-  padding: 15px;
   border-radius: 16px;
+  padding: 15px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
+
 .card img {
   width: 100%;
   height: 180px;
   object-fit: contain;
   cursor: pointer;
 }
+
 .badge {
   background: #111827;
   color: white;
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 12px;
-  width: fit-content;
 }
 
-/* ADMIN */
 .admin-panel {
   background: white;
   padding: 20px;
   border-radius: 12px;
-  margin-bottom: 25px;
+  margin: 20px 0;
   max-width: 500px;
-}
-.admin-panel input,
-.admin-panel textarea {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-.admin-panel button {
-  padding: 10px 14px;
-}
-
-/* TABLA USUARIOS */
-.tabla-usuarios {
-  width: 100%;
-  background: white;
-  border-radius: 12px;
-  border-collapse: collapse;
-}
-.tabla-usuarios th,
-.tabla-usuarios td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
 }
 
 .admin-only { display: none; }
 .admin-mode .admin-only { display: table-cell; }
 
-/* MODAL */
+.tabla-usuarios {
+  width: 100%;
+  background: white;
+  border-collapse: collapse;
+}
+
+.tabla-usuarios th, .tabla-usuarios td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
 .modal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0,.8);
   justify-content: center;
   align-items: center;
-  z-index: 999;
 }
+
 .modal img {
   max-width: 90%;
   max-height: 90%;
-}
-.cerrar {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  color: white;
-  font-size: 40px;
-  cursor: pointer;
 }
 </style>
 </head>
@@ -190,68 +154,49 @@ body {
 
 <!-- ================= PREMIOS ================= -->
 <div id="seccion-premios">
-
-<div class="top-bar">
-  <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="aplicarFiltros()">
-  <div class="admin-login">
-    <input type="password" id="password" placeholder="Admin">
-    <button onclick="login()">OK</button>
+  <div class="top-bar">
+    <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="renderProductos()">
+    <div class="admin-login">
+      <input type="password" id="password" placeholder="Admin">
+      <button onclick="login()">OK</button>
+    </div>
   </div>
-</div>
 
-<div class="filtros" id="filtros">
-  <strong>Filtrar por puntos:</strong>
-</div>
-
-<div id="formulario" class="admin-panel" style="display:none;">
-  <input type="hidden" id="editIndex">
-  <input id="descripcion" placeholder="Descripción">
-  <input id="disponible" type="number" placeholder="Disponible">
-  <input id="precio" type="number" placeholder="Puntos IP">
-  <input id="imagen" placeholder="URL imagen">
-  <button onclick="guardarProducto()">Guardar</button>
-  <button onclick="cancelarEdicion()">Cancelar</button>
-</div>
-
-<div id="listaProductos" class="grid"></div>
+  <div id="listaProductos" class="grid"></div>
 </div>
 
 <!-- ================= USUARIOS ================= -->
-<div id="seccion-usuarios" style="display:none;">
+<div id="seccion-usuarios" style="display:none">
 
-<h2>Puntos de usuarios</h2>
+  <div id="formUsuarios" class="admin-panel" style="display:none">
+    <input type="hidden" id="userId">
+    <input id="controlUsuario" placeholder="Número de control">
+    <input id="nombreUsuario" placeholder="Nombre">
+    <input id="puntosAcumulados" type="number" placeholder="Puntos acumulados">
+    <input id="puntosActuales" type="number" placeholder="Puntos actuales">
+    <textarea id="comentariosUsuario" placeholder="Comentarios"></textarea>
+    <button onclick="guardarUsuario()">Guardar</button>
+    <button onclick="cancelarUsuario()">Cancelar</button>
+  </div>
 
-<div id="formUsuarios" class="admin-panel" style="display:none;">
-  <input type="hidden" id="userId">
-  <input id="controlUsuario" placeholder="Número de control">
-  <input id="nombreUsuario" placeholder="Nombre">
-  <input id="puntosAcumulados" type="number" placeholder="Puntos acumulados">
-  <input id="puntosActuales" type="number" placeholder="Puntos actuales">
-  <textarea id="comentariosUsuario" placeholder="Comentarios"></textarea>
-  <button onclick="guardarUsuario()">Guardar</button>
-  <button onclick="cancelarUsuario()">Cancelar</button>
-</div>
-
-<table class="tabla-usuarios">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nombre</th>
-      <th>Puntos actuales</th>
-      <th class="admin-only">Puntos acumulados</th>
-      <th class="admin-only">Comentarios</th>
-      <th class="admin-only">Acciones</th>
-    </tr>
-  </thead>
-  <tbody id="listaUsuarios"></tbody>
-</table>
-
+  <table class="tabla-usuarios">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Puntos</th>
+        <th class="admin-only">Acumulados</th>
+        <th class="admin-only">Comentarios</th>
+        <th class="admin-only">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="listaUsuarios"></tbody>
+  </table>
 </div>
 
 <!-- MODAL -->
-<div id="modalImagen" class="modal" onclick="cerrarModal()">
-  <span class="cerrar">&times;</span>
-  <img id="imagenGrande">
+<div id="modal" class="modal" onclick="this.style.display='none'">
+  <img id="modalImg">
 </div>
 
 <script>
@@ -259,11 +204,13 @@ body {
 const CONTRASENA = "1234";
 let logeado = false;
 
+/* ================= FIREBASE ================= */
 firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
   projectId: "catalogo-ee5b7"
 });
+
 const db = firebase.firestore();
 
 /* ================= LOGIN ================= */
@@ -271,44 +218,41 @@ function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
     document.body.classList.add("admin-mode");
-    formulario.style.display = "block";
-    formUsuarios.style.display = "block";
-    renderProductos();
-    alert("Admin activado");
+    document.getElementById("formUsuarios").style.display = "block";
+    alert("Modo administrador activo");
   }
 }
 
 /* ================= PREMIOS ================= */
-const listaProductos = document.getElementById("listaProductos");
 let productos = [];
 
 db.collection("productos").onSnapshot(snap => {
   productos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  generarFiltros();
   renderProductos();
 });
 
 function renderProductos() {
   listaProductos.innerHTML = "";
+  const texto = buscador.value.toLowerCase();
+
   productos.forEach(p => {
+    if (!p.desc.toLowerCase().includes(texto)) return;
+
     listaProductos.innerHTML += `
-      <div class="card" data-precio="${p.precio}">
-        <img src="${p.img}" onclick="abrirImagen('${p.img}')">
+      <div class="card">
+        <img src="${p.img}" onclick="abrirImg('${p.img}')">
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
-        <div>Disponibles: ${p.disp}</div>
-        ${logeado ? `
-          <button onclick="editarProducto('${p.id}')">Editar</button>
-          <button onclick="eliminarProducto('${p.id}')">Eliminar</button>
-        ` : ""}
       </div>`;
   });
-  aplicarFiltros();
+}
+
+function abrirImg(src) {
+  modalImg.src = src;
+  modal.style.display = "flex";
 }
 
 /* ================= USUARIOS ================= */
-const listaUsuarios = document.getElementById("listaUsuarios");
-
 db.collection("usuarios").onSnapshot(snap => {
   listaUsuarios.innerHTML = "";
   snap.forEach(doc => {
@@ -322,54 +266,67 @@ db.collection("usuarios").onSnapshot(snap => {
           <td>${u.puntosAcumulados}</td>
           <td>${u.comentarios || ""}</td>
           <td>
-            <button onclick="editarUsuario('${doc.id}')">Editar</button>
-            <button onclick="eliminarUsuario('${doc.id}')">Eliminar</button>
+            <button onclick="editarUsuario('${doc.id}')">✏️</button>
+            <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
           </td>` : ""}
       </tr>`;
   });
 });
 
+function guardarUsuario() {
+  const data = {
+    control: controlUsuario.value,
+    nombre: nombreUsuario.value,
+    puntosAcumulados: +puntosAcumulados.value,
+    puntosActuales: +puntosActuales.value,
+    comentarios: comentariosUsuario.value
+  };
+
+  userId.value
+    ? db.collection("usuarios").doc(userId.value).update(data)
+    : db.collection("usuarios").add(data);
+
+  cancelarUsuario();
+}
+
+function editarUsuario(id) {
+  db.collection("usuarios").doc(id).get().then(d => {
+    const u = d.data();
+    userId.value = id;
+    controlUsuario.value = u.control;
+    nombreUsuario.value = u.nombre;
+    puntosAcumulados.value = u.puntosAcumulados;
+    puntosActuales.value = u.puntosActuales;
+    comentariosUsuario.value = u.comentarios;
+  });
+}
+
+function eliminarUsuario(id) {
+  if (confirm("Eliminar usuario?"))
+    db.collection("usuarios").doc(id).delete();
+}
+
+function cancelarUsuario() {
+  userId.value = "";
+  controlUsuario.value = "";
+  nombreUsuario.value = "";
+  puntosAcumulados.value = "";
+  puntosActuales.value = "";
+  comentariosUsuario.value = "";
+}
+
 /* ================= TABS ================= */
-function mostrarSeccion(sec) {
-  seccion-premios.style.display = sec === "premios" ? "block" : "none";
-  seccion-usuarios.style.display = sec === "usuarios" ? "block" : "none";
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  event.target.classList.add("active");
-}
-
-/* ================= MODAL ================= */
-function abrirImagen(url) {
-  imagenGrande.src = url;
-  modalImagen.style.display = "flex";
-}
-function cerrarModal() {
-  modalImagen.style.display = "none";
-}
-  function mostrarSeccion(seccion, btn) {
-  document.getElementById("seccion-premios").style.display =
-    seccion === "premios" ? "block" : "none";
-
-  document.getElementById("seccion-usuarios").style.display =
-    seccion === "usuarios" ? "block" : "none";
-
+function mostrarSeccion(seccion, btn) {
+  document.getElementById("seccion-premios").style.display = seccion === "premios" ? "block" : "none";
+  document.getElementById("seccion-usuarios").style.display = seccion === "usuarios" ? "block" : "none";
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   btn.classList.add("active");
 }
-function generarFiltros() {}
-function aplicarFiltros() {}
-function guardarProducto() {}
-function editarProducto() {}
-function eliminarProducto() {}
-function cancelarEdicion() {}
-function guardarUsuario() {}
-function editarUsuario() {}
-function eliminarUsuario() {}
-function cancelarUsuario() {}
-
 </script>
 
 </body>
 </html>
+
 
 
 
