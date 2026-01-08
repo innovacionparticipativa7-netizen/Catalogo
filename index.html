@@ -216,13 +216,19 @@ body {
   border-radius: 12px;
   border-collapse: collapse;
 }
-  .admin-only {
-  display: none;
+.admin-only { display: none; }
+
+/* para botones, divs, formularios */
+.admin-mode .admin-only {
+  display: inline-block;
 }
 
-.admin-mode .admin-only {
+/* para columnas de tabla */
+.admin-mode td.admin-only,
+.admin-mode th.admin-only {
   display: table-cell;
 }
+
 
 
 
@@ -618,6 +624,7 @@ function nuevoUsuario() {
 
 </body>
 </html>
+
 
 
 
