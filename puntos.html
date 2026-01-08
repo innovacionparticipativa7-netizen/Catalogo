@@ -64,6 +64,9 @@ firebase.initializeApp({
   authDomain: "catalogo-ee5b7.firebaseapp.com",
   projectId: "catalogo-ee5b7"
 });
+db.collection("usuarios").get().then(snap => {
+  alert("Usuarios encontrados: " + snap.size);
+});
 
 const db = firebase.firestore();
 const listaPuntos = document.getElementById("listaPuntos");
@@ -86,3 +89,4 @@ db.collection("usuarios").onSnapshot(snapshot => {
 
 </body>
 </html>
+
