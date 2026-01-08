@@ -159,6 +159,29 @@ body {
 
 .edit { background: #fde68a; }
 .delete { background: #fecaca; }
+
+/* MODAL IMAGEN */
+#modalImagen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  cursor: zoom-out;
+}
+
+#modalImagen img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+
+
+  
 </style>
 </head>
 
@@ -272,7 +295,7 @@ function renderProductos() {
 
     listaProductos.innerHTML += `
       <div class="card">
-        <img src="${p.img}">
+        <img src="${p.img}" onclick="abrirImagen('${p.img}')" style="cursor: zoom-in;">
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div class="stock">Disponibles: ${p.disp}</div>
@@ -316,10 +339,27 @@ function eliminarProducto(id) {
   if (confirm("¿Eliminar producto?"))
     db.collection("productos").doc(id).delete();
 }
+  function abrirImagen(src) {
+  const modal = document.getElementById("modalImagen");
+  const img = document.getElementById("imagenGrande");
+  img.src = src;
+  modal.style.display = "flex";
+}
+
+function cerrarImagen() {
+  document.getElementById("modalImagen").style.display = "none";
+}
+
 </script>
+  
+<!-- MODAL IMAGEN -->
+<div id="modalImagen" onclick="cerrarImagen()">
+  <img id="imagenGrande">
+</div>
 
 </body>
 </html>
+
 
 
 
