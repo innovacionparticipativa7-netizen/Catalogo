@@ -1,106 +1,317 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Catálogo de Premios IP</title>
+<meta charset="UTF-8">
+<title>Tienda de Premios IP</title>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-    }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
-    input, button {
-      padding: 6px;
-      margin: 4px 0;
-    }
+<style>
+* { box-sizing: border-box; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+  padding: 30px;
+}
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
-    }
+.titulo {
+  text-align: center;
+  font-size: 48px;
+  font-weight: 800;
+  margin: 30px 0 40px;
+  color: #1e293b;
+}
+.titulo::after {
+  content: "";
+  display: block;
+  width: 120px;
+  height: 5px;
+  background: linear-gradient(90deg, #2563eb, #9333ea);
+  margin: 15px auto 0;
+  border-radius: 10px;
+}
 
-    th {
-      background-color: #f2f2f2;
-    }
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
 
-    img {
-      width: 80px;
-      border-radius: 6px;
-    }
+.search {
+  padding: 10px;
+  width: 260px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+  /* MODAL IMAGEN */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  justify-content: center;
+  align-items: center;
+}
 
-    .admin-login {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 4px;
-    }
+.modal img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
 
-    .admin-login input {
-      width: 90px;
-      font-size: 12px;
-    }
+.cerrar {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+}
 
-    .admin {
-      background: #f9f9f9;
-      padding: 10px;
-      margin-top: 15px;
-      border: 1px solid #ccc;
-    }
-  </style>
+
+.admin-login {
+  display: flex;
+  gap: 6px;
+}
+.admin-login input {
+  padding: 8px;
+  width: 110px;
+  border-radius: 6px;
+}
+.admin-login button {
+  padding: 8px 12px;
+  background: #111827;
+  color: white;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+/* FILTROS */
+.filtros {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  margin-bottom: 25px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 14px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #f3f4f6;
+  margin-bottom: 12px;
+}
+
+.badge {
+  background: #111827;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  width: fit-content;
+  margin-bottom: 6px;
+}
+  .admin-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+  max-width: 500px;
+}
+
+.admin-panel input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.admin-panel button {
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+  .header {
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.logo {
+  width: 90px;        /* ajusta tamaño */
+  height: auto;
+}
+
+.titulo {
+  font-size: 48px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+  .tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #2563eb;
+  color: white;
+}
+
+/* TABLA USUARIOS */
+.tabla-usuarios {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  border-collapse: collapse;
+}
+  .admin-only {
+  display: none;
+}
+
+.admin-mode .admin-only {
+  display: table-cell;
+}
+
+
+
+
+</style>
+  <link rel="icon" href="Favicon.png" type="image/png">
 </head>
 
 <body>
 
-<h2>Catálogo de Premios IP</h2>
-
-<input type="text" id="buscador" placeholder="Buscar producto..." onkeyup="buscar()">
-
-<!-- LOGIN ADMIN -->
-<div class="admin-login">
-  <input type="password" id="password" placeholder="Admin">
-  <button onclick="login()">OK</button>
+<div class="header">
+  <img src="logo.png" alt="Logo Tienda" class="logo">
+  <h1 class="titulo">Tienda de Premios IP</h1>
+</div>
+  
+  <div class="tabs">
+  <button class="tab active" onclick="mostrarSeccion('premios')">🎁 Premios</button>
+  <button class="tab" onclick="mostrarSeccion('usuarios')">👤 Puntos de usuarios</button>
 </div>
 
-<!-- FORMULARIO -->
-<div id="formulario" class="admin" style="display:none;">
-  <h3>Agregar / Editar producto</h3>
+<div id="seccion-premios">
 
+<div class="top-bar">
+  <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="aplicarFiltros()">
+  <div class="admin-login">
+    <input type="password" id="password" placeholder="Admin">
+    <button onclick="login()">OK</button>
+  </div>
+</div>
+<div id="seccion-usuarios" style="display:none;">
+
+  <h2>Puntos de usuarios</h2>
+
+  <!-- FORMULARIO USUARIOS (ADMIN) -->
+  <div id="formUsuarios" class="admin-panel" style="display:none;">
+    <input type="hidden" id="userId">
+
+    <input id="controlUsuario" placeholder="Número de control">
+    <input id="nombreUsuario" placeholder="Nombre">
+
+    <input id="puntosAcumulados" type="number" placeholder="Puntos acumulados">
+    <input id="puntosActuales" type="number" placeholder="Puntos actuales">
+
+    <textarea id="comentariosUsuario" placeholder="Comentarios"></textarea>
+
+    <button onclick="guardarUsuario()">Guardar</button>
+    <button onclick="cancelarUsuario()">Cancelar</button>
+  </div>
+
+  <!-- TABLA USUARIOS -->
+  <table class="tabla-usuarios">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Puntos actuales</th>
+        <th class="admin-only">Puntos acumulados</th>
+        <th class="admin-only">Comentarios</th>
+        <th class="admin-only">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="listaUsuarios"></tbody>
+  </table>
+
+</div>
+
+<!-- FILTROS DINÁMICOS -->
+<div class="filtros" id="filtros">
+  <strong>Filtrar por puntos:</strong>
+</div>
+  
+<!-- FORMULARIO ADMIN (AQUÍ VA) -->
+<div id="formulario" class="admin-panel" style="display:none;">
   <input type="hidden" id="editIndex">
 
-  <input type="text" id="descripcion" placeholder="Descripción"><br>
-  <input type="number" id="disponible" placeholder="Disponible"><br>
-  <input type="number" id="precio" placeholder="Punto IP"><br>
-  <input type="text" id="imagen" placeholder="URL de la imagen"><br>
+  <input id="descripcion" placeholder="Descripción">
+  <input id="disponible" type="number" placeholder="Disponible">
+  <input id="precio" type="number" placeholder="Puntos IP">
+  <input id="imagen" placeholder="URL de imagen">
 
   <button onclick="guardarProducto()">Guardar</button>
   <button onclick="cancelarEdicion()">Cancelar</button>
 </div>
+  
+<!-- PRODUCTOS -->
+<div id="listaProductos" class="grid"></div>
+</div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Foto</th>
-      <th>Descripción</th>
-      <th>Disponible</th>
-      <th>Punto IP</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody id="listaProductos"></tbody>
-</table>
+
 
 <script>
 /* ================= ADMIN ================= */
@@ -110,64 +321,108 @@ let logeado = false;
 function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
-    formulario.style.display = "block";
-    alert("Acceso administrador concedido");
+
+    /*SE MUESTRA EL FORMULARIO*/
+    document.getElementById("formulario").style.display = "block";
+    document.getElementById("formUsuarios").style.display = "block";
+    document.body.classList.add("admin-mode");
+
+
+    /*SE REDIBUJAN LAS CARDS CON BOTONES*/
+    renderProductos();
+
+    alert("Modo administrador activado");
   } else {
     alert("Contraseña incorrecta");
   }
 }
 
-/* ================= BUSCADOR ================= */
-function buscar() {
-  let texto = buscador.value.toLowerCase();
-  document.querySelectorAll("#listaProductos tr").forEach(fila => {
-    fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none";
+
+/* ================= FIREBASE ================= */
+firebase.initializeApp({
+  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
+  authDomain: "catalogo-ee5b7.firebaseapp.com",
+  projectId: "catalogo-ee5b7"
+});
+
+const db = firebase.firestore();
+const listaProductos = document.getElementById("listaProductos");
+
+let productos = [];
+
+/* ================= CARGA EN TIEMPO REAL ================= */
+db.collection("productos").orderBy("precio", "desc").onSnapshot(snapshot => {
+  productos = [];
+  snapshot.forEach(doc => {
+    productos.push({ id: doc.id, ...doc.data() });
+  });
+
+  generarFiltros();
+  renderProductos();
+});
+
+/* ================= GENERAR FILTROS ================= */
+function generarFiltros() {
+  const contenedor = document.getElementById("filtros");
+  contenedor.innerHTML = "<strong>Filtrar por puntos:</strong>";
+
+  const puntosUnicos = [...new Set(productos.map(p => p.precio))].sort((a,b)=>a-b);
+
+  puntosUnicos.forEach(punto => {
+    const label = document.createElement("label");
+    label.innerHTML = `
+      <input type="checkbox" value="${punto}" onchange="aplicarFiltros()">
+      ${punto} IP
+    `;
+    contenedor.appendChild(label);
   });
 }
 
-/* ================= FIREBASE ================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
-  authDomain: "catalogo-ee5b7.firebaseapp.com",
-  projectId: "catalogo-ee5b7",
-  storageBucket: "catalogo-ee5b7.firebasestorage.app",
-  messagingSenderId: "577362291946",
-  appId: "1:577362291946:web:fe798c5e79e311a8967b93"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const listaProductos = document.getElementById("listaProductos");
-
-/* ================= LEER PRODUCTOS (REAL TIME) ================= */
-db.collection("productos").onSnapshot(snapshot => {
+/* ================= RENDER PRODUCTOS ================= */
+function renderProductos() {
   listaProductos.innerHTML = "";
-  snapshot.forEach(doc => {
-    const p = doc.data();
+
+  productos.forEach(p => {
     listaProductos.innerHTML += `
-      <tr>
-        <td><img src="${p.img}"></td>
-        <td>${p.desc}</td>
-        <td>${p.disp}</td>
-        <td>${p.precio}</td>
-        <td>
-          <button onclick="editarProducto('${doc.id}')">Editar</button>
-          <button onclick="eliminarProducto('${doc.id}')">Eliminar</button>
-        </td>
-      </tr>
+      <div class="card" data-precio="${p.precio}">
+        <img src="${p.img}" onclick="abrirImagen('${p.img}')" style="cursor:pointer;">
+        <span class="badge">${p.precio} IP</span>
+        <h3>${p.desc}</h3>
+        <div>Disponibles: ${p.disp}</div>
+
+        ${logeado ? `
+          <div class="actions">
+            <button onclick="editarProducto('${p.id}')">Editar</button>
+            <button onclick="eliminarProducto('${p.id}')">Eliminar</button>
+          </div>
+        ` : ""}
+      </div>
     `;
   });
-});
 
-/* ================= CRUD ================= */
+  aplicarFiltros();
+}
+function editarProducto(id) {
+  db.collection("productos").doc(id).get().then(doc => {
+    const p = doc.data();
+    editIndex.value = id;
+    descripcion.value = p.desc;
+    disponible.value = p.disp;
+    precio.value = p.precio;
+    imagen.value = p.img;
+  });
+}
+
+function eliminarProducto(id) {
+  if (confirm("¿Eliminar producto?")) {
+    db.collection("productos").doc(id).delete();
+  }
+}
 function guardarProducto() {
-  if (!logeado) return;
-
   const producto = {
     desc: descripcion.value,
-    disp: disponible.value,
-    precio: precio.value,
+    disp: Number(disponible.value),
+    precio: Number(precio.value),
     img: imagen.value
   };
 
@@ -182,50 +437,177 @@ function guardarProducto() {
     db.collection("productos").doc(editIndex.value).update(producto);
   }
 
-  limpiarFormulario();
+  cancelarEdicion();
 }
-
-function editarProducto(id) {
-  if (!logeado) {
-    alert("Acceso restringido");
-    return;
-  }
-
-  db.collection("productos").doc(id).get().then(doc => {
-    const p = doc.data();
-    editIndex.value = id;
-    descripcion.value = p.desc;
-    disponible.value = p.disp;
-    precio.value = p.precio;
-    imagen.value = p.img;
-  });
-}
-
-function eliminarProducto(id) {
-  if (!logeado) {
-    alert("Acceso restringido");
-    return;
-  }
-
-  if (confirm("¿Eliminar producto?")) {
-    db.collection("productos").doc(id).delete();
-  }
-}
-
 function cancelarEdicion() {
-  limpiarFormulario();
-}
-
-function limpiarFormulario() {
   descripcion.value = "";
   disponible.value = "";
   precio.value = "";
   imagen.value = "";
   editIndex.value = "";
 }
+
+
+/* ================= BUSCADOR + FILTROS ================= */
+function aplicarFiltros() {
+  const texto = buscador.value.toLowerCase();
+  const checks = document.querySelectorAll('#filtros input:checked');
+  const puntos = Array.from(checks).map(c => c.value);
+
+  document.querySelectorAll('.card').forEach(card => {
+    const coincideTexto = card.innerText.toLowerCase().includes(texto);
+    const coincidePuntos =
+      puntos.length === 0 || puntos.includes(card.dataset.precio);
+
+    card.style.display = coincideTexto && coincidePuntos ? "" : "none";
+    /* ================= USUARIOS ================= */
+const listaUsuarios = document.getElementById("listaUsuarios");
+
+db.collection("usuarios").onSnapshot(snapshot => {
+  listaUsuarios.innerHTML = "";
+
+  snapshot.forEach(doc => {
+    const u = doc.data();
+
+    listaUsuarios.innerHTML += `
+      <tr>
+        <td>${u.control}</td>
+        <td>${u.nombre}</td>
+        <td>${u.puntosActuales}</td>
+
+        ${logeado ? `
+          <td>${u.puntosAcumulados}</td>
+          <td>${u.comentarios || ""}</td>
+          <td>
+            <button onclick="editarUsuario('${doc.id}')">Editar</button>
+            <button onclick="eliminarUsuario('${doc.id}')">Eliminar</button>
+          </td>
+        ` : ""}
+      </tr>
+    `;
+  });
+});
+
+  });
+}
+
+function abrirImagen(url) {
+  document.getElementById("imagenGrande").src = url;
+  document.getElementById("modalImagen").style.display = "flex";
+}
+
+function cerrarModal() {
+  document.getElementById("modalImagen").style.display = "none";
+}
+
+function mostrarSeccion(seccion) {
+  document.getElementById("seccion-premios").style.display =
+    seccion === "premios" ? "block" : "none";
+
+  document.getElementById("seccion-usuarios").style.display =
+    seccion === "usuarios" ? "block" : "none";
+
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  event.target.classList.add("active");
+}
+
+function guardarUsuario() {
+  if (!logeado) return;
+
+  const usuario = {
+    control: controlUsuario.value,
+    nombre: nombreUsuario.value,
+    puntosAcumulados: Number(puntosAcumulados.value),
+    puntosActuales: Number(puntosActuales.value),
+    comentarios: comentariosUsuario.value
+  };
+
+  if (userId.value === "") {
+    db.collection("usuarios").add(usuario);
+  } else {
+    db.collection("usuarios").doc(userId.value).update(usuario);
+  }
+
+  cancelarUsuario();
+}
+
+function editarUsuario(id) {
+  db.collection("usuarios").doc(id).get().then(doc => {
+    const u = doc.data();
+
+    userId.value = id;
+    controlUsuario.value = u.control;
+    nombreUsuario.value = u.nombre;
+    puntosAcumulados.value = u.puntosAcumulados;
+    puntosActuales.value = u.puntosActuales;
+    comentariosUsuario.value = u.comentarios;
+  });
+}
+
+function eliminarUsuario(id) {
+  if (confirm("¿Eliminar usuario?")) {
+    db.collection("usuarios").doc(id).delete();
+  }
+}
+
+function cancelarUsuario() {
+  userId.value = "";
+  controlUsuario.value = "";
+  nombreUsuario.value = "";
+  puntosAcumulados.value = "";
+  puntosActuales.value = "";
+  comentariosUsuario.value = "";
+}
+
+<script>
+
+... TODO TU JS DE PREMIOS ...
+
+/* ================= USUARIOS ================= */
+const listaUsuarios = document.getElementById("listaUsuarios");
+
+db.collection("usuarios").onSnapshot(snapshot => {
+  listaUsuarios.innerHTML = "";
+
+  snapshot.forEach(doc => {
+    const u = doc.data();
+
+    listaUsuarios.innerHTML += `
+      <tr>
+        <td>${u.control}</td>
+        <td>${u.nombre}</td>
+        <td>${u.puntosActuales}</td>
+
+        ${logeado ? `
+          <td>${u.puntosAcumulados}</td>
+          <td>${u.comentarios || ""}</td>
+          <td>
+            <button onclick="editarUsuario('${doc.id}')">Editar</button>
+            <button onclick="eliminarUsuario('${doc.id}')">Eliminar</button>
+          </td>
+        ` : ""}
+      </tr>
+    `;
+  });
+});
+
+/* CRUD USUARIOS */
+function guardarUsuario() { ... }
+function editarUsuario(id) { ... }
+function eliminarUsuario(id) { ... }
+function cancelarUsuario() { ... }
+
 </script>
+
+  
+</script>
+
+  <!-- MODAL IMAGEN -->
+<div id="modalImagen" class="modal" onclick="cerrarModal()">
+  <span class="cerrar">&times;</span>
+  <img id="imagenGrande">
+</div>
+
 
 </body>
 </html>
-
-
