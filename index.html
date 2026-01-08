@@ -230,6 +230,28 @@ body {
   color: white;
   border-color: #2563eb;
 }
+.tabla-puntos {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border-collapse: collapse;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.tabla-puntos th {
+  background: #111827;
+  color: white;
+  text-align: left;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.tabla-puntos td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+}
 
 
 
@@ -279,7 +301,24 @@ body {
 
 <div id="listaProductos" class="grid"></div>
 </div> <!-- FIN seccion-premios -->
-  
+  <!-- ================= PUNTOS IP ================= -->
+<div id="seccion-puntos" style="display:none;">
+
+  <h2 style="margin-bottom:15px;">👤 Puntos IP</h2>
+
+  <table class="tabla-puntos">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Puntos</th>
+      </tr>
+    </thead>
+    <tbody id="listaPuntos"></tbody>
+  </table>
+
+</div>
+
 <!------------------------------------- seccion de puntos------------------------------------->
 <div id="seccion-puntos" style="display:none;">
   <div class="admin-panel">
@@ -436,6 +475,24 @@ function cerrarImagen() {
   btn.classList.add("active");
 }
 
+const listaPuntos = document.getElementById("listaPuntos");
+
+/* CARGAR USUARIOS */
+db.collection("usuarios").onSnapshot(snapshot => {
+  listaPuntos.innerHTML = "";
+
+  snapshot.forEach(doc => {
+    const u = doc.data();
+
+    listaPuntos.innerHTML += `
+      <tr>
+        <td>${u.control || doc.id}</td>
+        <td>${u.nombre}</td>
+        <td>${u.puntosActuales}</td>
+      </tr>
+    `;
+  });
+});
 
 </script>
   
@@ -446,6 +503,7 @@ function cerrarImagen() {
 
 </body>
 </html>
+
 
 
 
