@@ -107,32 +107,90 @@ td {
 .admin-only {
   margin-top: 8px;
 }
+.btn-premios {
+  display: inline-block;
+  background: #111827;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.2s ease;
+  margin-bottom: 15px;
+}
+
+.btn-premios:hover {
+  background: #1f2937;
+}
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0 25px 0;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Inputs estilo Premios */
+.input-premios {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  outline: none;
+}
+
+.input-premios:focus {
+  border-color: #111827;
+}
+
+/* Botón estilo Premios */
+.btn-premios {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-premios:hover {
+  background: #1f2937;
+}
+
+/* Ajuste admin */
+.admin-login {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 
 </style>
 </head>
 
 <body>
 
-<a href="index.html">⬅ Volver a premios</a>
+<a href="index.html" class="btn-premios">⬅ Volver a premios</a>
+
 
 <h1>👤 Puntos IP</h1>
-<h1>👤 Puntos IP</h1>
-
 <div class="top-bar">
-  <!-- BUSCADOR -->
   <input
     type="text"
     id="buscador"
     placeholder="🔍 Buscar por control, nombre o área"
     oninput="filtrarUsuarios()"
+    class="input-premios"
   >
 
   <!-- ADMIN -->
-  <div class="admin-container">
-    <div class="admin-login">
-      <input type="password" id="password" placeholder="Admin">
-      <button onclick="login()">OK</button>
-    </div>
+  <div class="admin-login">
+    <input type="password" id="password" placeholder="Admin" class="input-premios">
+    <button onclick="login()" class="btn-premios">OK</button>
+  </div>
+</div>
 
     <div class="admin-only">
       <input type="file" id="excelInput" accept=".xlsx,.xls">
@@ -426,6 +484,7 @@ function filtrarUsuarios() {
 
 </body>
 </html>
+
 
 
 
