@@ -143,6 +143,7 @@ let logeado = false;
 // DOM
 const listaPuntos = document.getElementById("listaPuntos");
 const formUsuarios = document.getElementById("formUsuarios");
+const password = document.getElementById("password");
 
 const userId = document.getElementById("userId");
 const controlUsuario = document.getElementById("controlUsuario");
@@ -193,15 +194,15 @@ function renderUsuarios(snapshot) {
   });
 }
 
-// CARGA INICIAL RÁPIDA
-usuariosRef.get().then(snapshot => {
+let primeraCarga = true;
+
+usuariosRef.onSnapshot(snapshot => {
+  if (primeraCarga) {
+    primeraCarga = false;
+  }
   renderUsuarios(snapshot);
 });
 
-// ACTUALIZACIÓN EN TIEMPO REAL
-usuariosRef.onSnapshot(snapshot => {
-  renderUsuarios(snapshot);
-});
 
 
 
@@ -307,6 +308,7 @@ function cancelarUsuario() {
 
 </body>
 </html>
+
 
 
 
