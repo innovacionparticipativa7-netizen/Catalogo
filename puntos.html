@@ -167,7 +167,7 @@ table td button {
   <input id="areaUsuario" placeholder="Área"><br><br>
 
   <input id="puntosUsuario" type="number" placeholder="Puntos actuales"><br><br>
-  <input id="puntosAcumuladosUsuario" type="number" placeholder="Comentarios de puntos">
+   <textarea id="comentariosPuntosUsuario" placeholder="Comentarios" rows="3" style="width:100%;"></textarea><br><br>
 
   <textarea id="comentariosUsuario" placeholder="Comentarios" rows="3" style="width:100%;"></textarea><br><br>
 
@@ -223,7 +223,7 @@ const userId = document.getElementById("userId");
 const controlUsuario = document.getElementById("controlUsuario");
 const nombreUsuario = document.getElementById("nombreUsuario");
 const puntosUsuario = document.getElementById("puntosUsuario");
-const puntosAcumuladosUsuario = document.getElementById("puntosAcumuladosUsuario");
+const comentariosPuntosUsuario = document.getElementById("comentariosPuntosUsuario");
 const comentariosUsuario = document.getElementById("comentariosUsuario");
 const areaUsuario = document.getElementById("areaUsuario");
   
@@ -268,7 +268,6 @@ function pintarTabla(lista) {
 
   lista.forEach(u => {
     const puntosActuales = Number(u.puntosActuales || 0);
-    const puntosAcumulados = Number(u.puntosAcumulados || 0);
 
     listaPuntos.innerHTML += `
       <tr>
@@ -276,7 +275,7 @@ function pintarTabla(lista) {
         <td>${u.nombre}</td>
         <td>${puntosActuales}</td>
         <td class="admin-only">${u.area ?? ""}</td>
-        <td class="admin-only">${puntosAcumulados}</td>
+        <td class="admin-only">${u.comentariosPuuntos}</td>
         <td class="admin-only">${u.comentarios ?? ""}</td>
         <td class="admin-only">
           <button onclick="editarUsuario('${u.id}')">✏️</button>
@@ -300,7 +299,7 @@ function guardarUsuario() {
     area: areaUsuario.value || "",
 
     puntosActuales: Number(puntosUsuario.value) || 0,
-    puntosAcumulados: Number(puntosAcumuladosUsuario.value) || 0,
+    puntosAcumulados: comentariosPuntosUsuario.value || "",
 
     comentarios: comentariosUsuario.value || ""
   };
@@ -325,7 +324,7 @@ function editarUsuario(id) {
     nombreUsuario.value = u.nombre;
     areaUsuario.value = u.area ?? "";
     puntosUsuario.value = u.puntosActuales ?? 0;
-    puntosAcumuladosUsuario.value = u.puntosAcumulados ?? 0;
+    comentariosPuntosUsuario.value = u.comentariosPuntos ?? "";
     comentariosUsuario.value = u.comentarios ?? "";
   });
 }
@@ -346,7 +345,7 @@ function cancelarUsuario() {
   nombreUsuario.value = "";
   areaUsuario.value = "";
   puntosUsuario.value = "";
-  puntosAcumuladosUsuario.value = "";
+  comentariosPuntosUsuario.value = "";
   comentariosUsuario.value = "";
 }
 
@@ -375,8 +374,7 @@ function cancelarUsuario() {
   area: row.area ?? "",
 
   puntosActuales: Number(row.puntosActuales) || 0,
-  puntosAcumulados: Number(row.puntosAcumulados) || 0,
-
+  comentariosPuntos: row.comentariosPuntos ?? "",
   comentarios: row.comentarios ?? ""
 };
 
@@ -404,7 +402,7 @@ function exportarExcel() {
         nombre: u.nombre ?? "",
         area: u.area ?? "",
         puntosActuales: u.puntosActuales ?? 0,
-        comentariosDePuntos: u.puntosAcumulados ?? 0,
+        comentariosPuntos: u.comentariosPuntos ?? "",
         comentarios: u.comentarios ?? ""
       });
     });
@@ -437,6 +435,7 @@ function filtrarUsuarios() {
 
 </body>
 </html>
+
 
 
 
