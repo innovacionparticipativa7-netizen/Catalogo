@@ -119,6 +119,14 @@ table td {
 table td button {
   margin: 0 4px;
 }
+  .admin-panel {
+  background: white;
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
 
 </style>
 </head>
@@ -171,8 +179,9 @@ table td button {
 
   <textarea id="comentariosUsuario" placeholder="Comentarios" rows="3" style="width:100%;"></textarea><br><br>
 
-  <button onclick="guardarUsuario()">Guardar</button>
-  <button onclick="cancelarUsuario()">Cancelar</button>
+  <button class="btn-premios" onclick="guardarUsuario()">Guardar</button>
+  <button class="btn-premios" onclick="cancelarUsuario()">Cancelar</button>
+
 </div>
 
 
@@ -436,6 +445,7 @@ function filtrarUsuarios() {
 
 </body>
 </html>
+
 
 
 
