@@ -147,8 +147,8 @@ table td button {
 
     <div class="admin-only">
       <input type="file" id="excelInput" accept=".xlsx,.xls">
-      <button onclick="importarExcel()">📥</button>
-      <button onclick="exportarExcel()">📤</button>
+      <button onclick="importarExcel()">📥Importar</button>
+      <button onclick="exportarExcel()">📤Exportar</button>
     </div>
   </div>
 </div>
@@ -167,7 +167,7 @@ table td button {
   <input id="areaUsuario" placeholder="Área"><br><br>
 
   <input id="puntosUsuario" type="number" placeholder="Puntos actuales"><br><br>
-  <input id="puntosAcumuladosUsuario" type="number" placeholder="Puntos acumulados"><br><br>
+  <input id="puntosAcumuladosUsuario" type="number" placeholder="Comentarios de puntos">
 
   <textarea id="comentariosUsuario" placeholder="Comentarios" rows="3" style="width:100%;"></textarea><br><br>
 
@@ -183,7 +183,7 @@ table td button {
     <th>Nombre</th>
     <th>Puntos</th>
     <th class="admin-only">Área</th>
-    <th class="admin-only">Puntos acumulados</th>
+    <th class="admin-only">Comentarios de puntos</th>
     <th class="admin-only">Comentarios</th>
     <th class="admin-only">Acciones</th>
   </tr>
@@ -404,7 +404,7 @@ function exportarExcel() {
         nombre: u.nombre ?? "",
         area: u.area ?? "",
         puntosActuales: u.puntosActuales ?? 0,
-        puntosAcumulados: u.puntosAcumulados ?? 0,
+        comentariosDePuntos: u.puntosAcumulados ?? 0,
         comentarios: u.comentarios ?? ""
       });
     });
@@ -437,6 +437,7 @@ function filtrarUsuarios() {
 
 </body>
 </html>
+
 
 
 
