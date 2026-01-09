@@ -88,6 +88,10 @@ td {
   <input type="file" id="excelInput" accept=".xlsx,.xls">
   <button onclick="importarExcel()">📥 Importar Excel</button>
 </div>
+  <div class="admin-only" style="margin:15px 0;">
+  <button onclick="exportarExcel()">📤 Exportar Excel</button>
+</div>
+
 
 <!-- FORM USUARIOS -->
 <div id="formUsuarios" class="admin-panel" style="display:none;">
@@ -317,11 +321,40 @@ function cancelarUsuario() {
 
   reader.readAsArrayBuffer(file);
 }
+function exportarExcel() {
+  usuariosRef.get().then(snapshot => {
+    const data = [];
+
+    snapshot.forEach(doc => {
+      const u = doc.data();
+      data.push({
+        control: u.control ?? "",
+        nombre: u.nombre ?? "",
+        area: u.area ?? "",
+        puntosActuales: u.puntosActuales ?? 0,
+        puntosAcumulados: u.puntosAcumulados ?? 0,
+        comentarios: u.comentarios ?? ""
+      });
+    });
+
+    if (data.length === 0) {
+      alert("No hay datos para exportar");
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Usuarios");
+
+    XLSX.writeFile(wb, "usuarios_puntos.xlsx");
+  });
+}
 
 </script>
 
 </body>
 </html>
+
 
 
 
