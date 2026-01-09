@@ -97,6 +97,7 @@ td {
 
   <input id="controlUsuario" placeholder="Número de control"><br><br>
   <input id="nombreUsuario" placeholder="Nombre"><br><br>
+  <input id="areaUsuario" placeholder="Área"><br><br>
 
   <input id="puntosUsuario" type="number" placeholder="Puntos actuales"><br><br>
   <input id="puntosAcumuladosUsuario" type="number" placeholder="Puntos acumulados"><br><br>
@@ -114,6 +115,7 @@ td {
     <th>Control</th>
     <th>Nombre</th>
     <th>Puntos</th>
+    <th class="admin-only">Área</th>
     <th class="admin-only">Puntos acumulados</th>
     <th class="admin-only">Comentarios</th>
     <th class="admin-only">Acciones</th>
@@ -173,7 +175,7 @@ db.collection("usuarios").onSnapshot(snapshot => {
         <td>${u.control}</td>
         <td>${u.nombre}</td>
         <td>${u.puntosActuales}</td>
-
+        <td class="admin-only">${u.area ?? ""}</td>
         <td class="admin-only">${u.puntosAcumulados ?? 0}</td>
         <td class="admin-only">${u.comentarios ?? ""}</td>
 
@@ -192,6 +194,7 @@ function guardarUsuario() {
   const data = {
     control: controlUsuario.value,
     nombre: nombreUsuario.value,
+    area: areaUsuario.value,
     puntosActuales: Number(puntosUsuario.value),
     puntosAcumulados: Number(puntosAcumuladosUsuario.value),
     comentarios: comentariosUsuario.value
@@ -200,11 +203,12 @@ function guardarUsuario() {
   if (userId.value) {
     db.collection("usuarios").doc(userId.value).update(data);
   } else {
-    db.collection("usuarios").add(data);
+    db.collection("usuarios").doc(controlUsuario.value).set(data);
   }
 
   cancelarUsuario();
 }
+
 
 
 // EDITAR
@@ -215,11 +219,13 @@ function editarUsuario(id) {
     userId.value = id;
     controlUsuario.value = u.control;
     nombreUsuario.value = u.nombre;
+    areaUsuario.value = u.area ?? "";
     puntosUsuario.value = u.puntosActuales ?? 0;
     puntosAcumuladosUsuario.value = u.puntosAcumulados ?? 0;
     comentariosUsuario.value = u.comentarios ?? "";
   });
 }
+
 
 
 // ELIMINAR
@@ -258,10 +264,12 @@ function cancelarUsuario() {
       const dataUsuario = {
         control: String(row.control),
         nombre: row.nombre ?? "",
+        area: row.area ?? "",
         puntosActuales: Number(row.puntosActuales ?? 0),
         puntosAcumulados: Number(row.puntosAcumulados ?? 0),
         comentarios: row.comentarios ?? ""
       };
+
 
       // usamos control como ID para evitar duplicados
       db.collection("usuarios")
@@ -279,6 +287,7 @@ function cancelarUsuario() {
 
 </body>
 </html>
+
 
 
 
