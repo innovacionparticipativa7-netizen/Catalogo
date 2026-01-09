@@ -6,6 +6,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 body {
@@ -82,6 +83,10 @@ td {
 <div class="admin-login">
   <input type="password" id="password" placeholder="Admin">
   <button onclick="login()">OK</button>
+</div>
+<div class="admin-only" style="margin:15px 0;">
+  <input type="file" id="excelInput" accept=".xlsx,.xls">
+  <button onclick="importarExcel()">📥 Importar Excel</button>
 </div>
 
 <!-- FORM USUARIOS -->
@@ -231,9 +236,49 @@ function cancelarUsuario() {
   nombreUsuario.value = "";
   puntosUsuario.value = "";
 }
+  function importarExcel() {
+  const file = document.getElementById("excelInput").files[0];
+  if (!file) {
+    alert("Selecciona un archivo Excel");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    rows.forEach(row => {
+      if (!row.control) return;
+
+      const dataUsuario = {
+        control: String(row.control),
+        nombre: row.nombre ?? "",
+        puntosActuales: Number(row.puntosActuales ?? 0),
+        puntosAcumulados: Number(row.puntosAcumulados ?? 0),
+        comentarios: row.comentarios ?? ""
+      };
+
+      // usamos control como ID para evitar duplicados
+      db.collection("usuarios")
+        .doc(String(row.control))
+        .set(dataUsuario, { merge: true });
+    });
+
+    alert("✅ Excel importado correctamente");
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
 </script>
 
 </body>
 </html>
+
 
 
