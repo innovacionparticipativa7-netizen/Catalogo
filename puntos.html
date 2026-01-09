@@ -170,13 +170,20 @@ db.collection("usuarios").onSnapshot(snapshot => {
   snapshot.forEach(doc => {
     const u = doc.data();
 
+    const puntosActuales =
+      Number(u.puntosActuales ?? u.puntos ?? 0);
+
+    const puntosAcumulados =
+      Number(u.puntosAcumulados ?? u.acumulados ?? 0);
+
     listaPuntos.innerHTML += `
       <tr>
         <td>${u.control}</td>
         <td>${u.nombre}</td>
-        <td>${u.puntosActuales}</td>
+        <td>${puntosActuales}</td>
+
         <td class="admin-only">${u.area ?? ""}</td>
-        <td class="admin-only">${u.puntosAcumulados ?? 0}</td>
+        <td class="admin-only">${puntosAcumulados}</td>
         <td class="admin-only">${u.comentarios ?? ""}</td>
 
         <td class="admin-only">
@@ -189,22 +196,23 @@ db.collection("usuarios").onSnapshot(snapshot => {
 });
 
 
+
 // GUARDAR / EDITAR
 function guardarUsuario() {
   const data = {
     control: controlUsuario.value,
     nombre: nombreUsuario.value,
     area: areaUsuario.value,
-    puntosActuales: Number(puntosUsuario.value),
-    puntosAcumulados: Number(puntosAcumuladosUsuario.value),
+
+    puntosActuales: Number(puntosUsuario.value) || 0,
+    puntosAcumulados: Number(puntosAcumuladosUsuario.value) || 0,
+
     comentarios: comentariosUsuario.value
   };
 
-  if (userId.value) {
-    db.collection("usuarios").doc(userId.value).update(data);
-  } else {
-    db.collection("usuarios").doc(controlUsuario.value).set(data);
-  }
+  db.collection("usuarios")
+    .doc(controlUsuario.value)
+    .set(data, { merge: true });
 
   cancelarUsuario();
 }
@@ -262,13 +270,16 @@ function cancelarUsuario() {
       if (!row.control) return;
 
       const dataUsuario = {
-        control: String(row.control),
-        nombre: row.nombre ?? "",
-        area: row.area ?? "",
-        puntosActuales: Number(row.puntosActuales ?? 0),
-        puntosAcumulados: Number(row.puntosAcumulados ?? 0),
-        comentarios: row.comentarios ?? ""
-      };
+  control: String(row.control),
+  nombre: row.nombre ?? "",
+  area: row.area ?? "",
+
+  puntosActuales: Number(row.puntosActuales) || 0,
+  puntosAcumulados: Number(row.puntosAcumulados) || 0,
+
+  comentarios: row.comentarios ?? ""
+};
+
 
 
       // usamos control como ID para evitar duplicados
@@ -287,6 +298,7 @@ function cancelarUsuario() {
 
 </body>
 </html>
+
 
 
 
