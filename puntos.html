@@ -186,11 +186,41 @@ usuariosRef.get().then(snapshot => {
 });
 
 function renderUsuariosOrdenados(snapshot) {
-  const docs = [];
+  usuariosCache = [];
 
   snapshot.forEach(doc => {
-    docs.push({ id: doc.id, ...doc.data() });
+    usuariosCache.push({ id: doc.id, ...doc.data() });
   });
+
+  usuariosCache.sort((a, b) =>
+    String(a.control).localeCompare(String(b.control))
+  );
+
+  pintarTabla(usuariosCache);
+}
+function pintarTabla(lista) {
+  listaPuntos.innerHTML = "";
+
+  lista.forEach(u => {
+    const puntosActuales = Number(u.puntosActuales || 0);
+    const puntosAcumulados = Number(u.puntosAcumulados || 0);
+
+    listaPuntos.innerHTML += `
+      <tr>
+        <td>${u.control}</td>
+        <td>${u.nombre}</td>
+        <td>${puntosActuales}</td>
+        <td class="admin-only">${u.area ?? ""}</td>
+        <td class="admin-only">${puntosAcumulados}</td>
+        <td class="admin-only">${u.comentarios ?? ""}</td>
+        <td class="admin-only">
+          <button onclick="editarUsuario('${u.id}')">✏️</button>
+          <button onclick="eliminarUsuario('${u.id}')">🗑️</button>
+        </td>
+      </tr>
+    `;
+  });
+}
 
   // ORDENAMOS LOCALMENTE (MUY RÁPIDO)
   docs.sort((a, b) => String(a.control).localeCompare(String(b.control)));
@@ -349,11 +379,23 @@ function exportarExcel() {
     XLSX.writeFile(wb, "usuarios_puntos.xlsx");
   });
 }
+function filtrarUsuarios() {
+  const texto = document.getElementById("buscador").value.toLowerCase();
+
+  const filtrados = usuariosCache.filter(u =>
+    String(u.control).toLowerCase().includes(texto) ||
+    String(u.nombre).toLowerCase().includes(texto) ||
+    String(u.area ?? "").toLowerCase().includes(texto)
+  );
+
+  pintarTabla(filtrados);
+}
 
 </script>
 
 </body>
 </html>
+
 
 
 
