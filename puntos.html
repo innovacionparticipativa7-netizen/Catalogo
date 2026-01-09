@@ -138,7 +138,10 @@ td {
   border: 1px solid #d1d5db;
   font-size: 14px;
   outline: none;
+  height: 36px;            
+  box-sizing: border-box;
 }
+
 
 .input-premios:focus {
   border-color: #111827;
@@ -149,12 +152,21 @@ td {
   background: #111827;
   color: white;
   border: none;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
+  height: 36px;            
+  display: flex;           
+  align-items: center;
+  justify-content: center;
   transition: background 0.2s ease;
 }
+
+.btn-premios:hover {
+  background: #1f2937;
+}
+
 
 .btn-premios:hover {
   background: #1f2937;
@@ -484,6 +496,7 @@ function filtrarUsuarios() {
 
 </body>
 </html>
+
 
 
 
