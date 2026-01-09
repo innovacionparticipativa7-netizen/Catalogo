@@ -134,7 +134,7 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
-const usuariosRef = db.collection("usuarios").orderBy("control");
+const usuariosRef = db.collection("usuarios");
 
 // ADMIN
 const CONTRASENA = "1234";
@@ -166,12 +166,29 @@ function login() {
 
 
 // CARGAR USUARIOS
-function renderUsuarios(snapshot) {
-  listaPuntos.innerHTML = "";
+// CARGA INICIAL RÁPIDA
+usuariosRef.get().then(snapshot => {
+  renderUsuariosOrdenados(snapshot);
+
+  // TIEMPO REAL
+  usuariosRef.onSnapshot(snapshotRT => {
+    renderUsuariosOrdenados(snapshotRT);
+  });
+});
+
+function renderUsuariosOrdenados(snapshot) {
+  const docs = [];
 
   snapshot.forEach(doc => {
-    const u = doc.data();
+    docs.push({ id: doc.id, ...doc.data() });
+  });
 
+  // ORDENAMOS LOCALMENTE (MUY RÁPIDO)
+  docs.sort((a, b) => String(a.control).localeCompare(String(b.control)));
+
+  listaPuntos.innerHTML = "";
+
+  docs.forEach(u => {
     const puntosActuales = Number(u.puntosActuales || 0);
     const puntosAcumulados = Number(u.puntosAcumulados || 0);
 
@@ -180,29 +197,17 @@ function renderUsuarios(snapshot) {
         <td>${u.control}</td>
         <td>${u.nombre}</td>
         <td>${puntosActuales}</td>
-
         <td class="admin-only">${u.area ?? ""}</td>
         <td class="admin-only">${puntosAcumulados}</td>
         <td class="admin-only">${u.comentarios ?? ""}</td>
-
         <td class="admin-only">
-          <button onclick="editarUsuario('${doc.id}')">✏️</button>
-          <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
+          <button onclick="editarUsuario('${u.id}')">✏️</button>
+          <button onclick="eliminarUsuario('${u.id}')">🗑️</button>
         </td>
       </tr>
     `;
   });
 }
-
-let primeraCarga = true;
-
-usuariosRef.onSnapshot(snapshot => {
-  if (primeraCarga) {
-    primeraCarga = false;
-  }
-  renderUsuarios(snapshot);
-});
-
 
 
 
@@ -312,6 +317,7 @@ function cancelarUsuario() {
 
 </body>
 </html>
+
 
 
 
