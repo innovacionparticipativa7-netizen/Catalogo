@@ -134,6 +134,7 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+const usuariosRef = db.collection("usuarios").orderBy("control");
 
 // ADMIN
 const CONTRASENA = "1234";
@@ -149,6 +150,7 @@ const nombreUsuario = document.getElementById("nombreUsuario");
 const puntosUsuario = document.getElementById("puntosUsuario");
 const puntosAcumuladosUsuario = document.getElementById("puntosAcumuladosUsuario");
 const comentariosUsuario = document.getElementById("comentariosUsuario");
+const areaUsuario = document.getElementById("areaUsuario");
   
 
 // LOGIN
@@ -156,7 +158,6 @@ function login() {
   if (password.value === CONTRASENA) {
     logeado = true;
     document.body.classList.add("admin-mode");
-    formulario.style.display = "block";
     formUsuarios.style.display = "block";
     alert("Modo administrador activo");
   }
@@ -164,17 +165,14 @@ function login() {
 
 
 // CARGAR USUARIOS
-db.collection("usuarios").onSnapshot(snapshot => {
+function renderUsuarios(snapshot) {
   listaPuntos.innerHTML = "";
 
   snapshot.forEach(doc => {
     const u = doc.data();
 
-    const puntosActuales =
-      Number(u.puntosActuales ?? u.puntos ?? 0);
-
-    const puntosAcumulados =
-      Number(u.puntosAcumulados ?? u.acumulados ?? 0);
+    const puntosActuales = Number(u.puntosActuales || 0);
+    const puntosAcumulados = Number(u.puntosAcumulados || 0);
 
     listaPuntos.innerHTML += `
       <tr>
@@ -193,6 +191,16 @@ db.collection("usuarios").onSnapshot(snapshot => {
       </tr>
     `;
   });
+}
+
+// CARGA INICIAL RÁPIDA
+usuariosRef.get().then(snapshot => {
+  renderUsuarios(snapshot);
+});
+
+// ACTUALIZACIÓN EN TIEMPO REAL
+usuariosRef.onSnapshot(snapshot => {
+  renderUsuarios(snapshot);
 });
 
 
