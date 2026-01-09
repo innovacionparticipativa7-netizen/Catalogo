@@ -78,6 +78,15 @@ td {
 <a href="index.html">⬅ Volver a premios</a>
 
 <h1>👤 Puntos IP</h1>
+<div style="margin:15px 0;">
+  <input
+    type="text"
+    id="buscador"
+    placeholder="🔍 Buscar por control, nombre o área"
+    style="padding:8px;width:300px"
+    oninput="filtrarUsuarios()"
+  >
+</div>
 
 <!-- LOGIN ADMIN -->
 <div class="admin-login">
@@ -144,6 +153,8 @@ const db = firebase.firestore();
   });
 
 const usuariosRef = db.collection("usuarios");
+let usuariosCache = [];
+
 
 // ADMIN
 const CONTRASENA = "1234";
@@ -184,7 +195,6 @@ usuariosRef.get().then(snapshot => {
     renderUsuariosOrdenados(snapshotRT);
   });
 });
-
 function renderUsuariosOrdenados(snapshot) {
   usuariosCache = [];
 
@@ -198,6 +208,7 @@ function renderUsuariosOrdenados(snapshot) {
 
   pintarTabla(usuariosCache);
 }
+
 function pintarTabla(lista) {
   listaPuntos.innerHTML = "";
 
@@ -222,31 +233,8 @@ function pintarTabla(lista) {
   });
 }
 
-  // ORDENAMOS LOCALMENTE (MUY RÁPIDO)
-  docs.sort((a, b) => String(a.control).localeCompare(String(b.control)));
+  
 
-  listaPuntos.innerHTML = "";
-
-  docs.forEach(u => {
-    const puntosActuales = Number(u.puntosActuales || 0);
-    const puntosAcumulados = Number(u.puntosAcumulados || 0);
-
-    listaPuntos.innerHTML += `
-      <tr>
-        <td>${u.control}</td>
-        <td>${u.nombre}</td>
-        <td>${puntosActuales}</td>
-        <td class="admin-only">${u.area ?? ""}</td>
-        <td class="admin-only">${puntosAcumulados}</td>
-        <td class="admin-only">${u.comentarios ?? ""}</td>
-        <td class="admin-only">
-          <button onclick="editarUsuario('${u.id}')">✏️</button>
-          <button onclick="eliminarUsuario('${u.id}')">🗑️</button>
-        </td>
-      </tr>
-    `;
-  });
-}
 
 
 
