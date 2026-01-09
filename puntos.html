@@ -134,6 +134,11 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+  firebase.firestore().enablePersistence()
+  .catch(err => {
+    console.log("Persistencia no disponible", err.code);
+  });
+
 const usuariosRef = db.collection("usuarios");
 
 // ADMIN
@@ -317,6 +322,7 @@ function cancelarUsuario() {
 
 </body>
 </html>
+
 
 
 
