@@ -275,7 +275,7 @@ function pintarTabla(lista) {
         <td>${u.nombre}</td>
         <td>${puntosActuales}</td>
         <td class="admin-only">${u.area ?? ""}</td>
-        <td class="admin-only">${u.comentariosPuuntos}</td>
+        <td class="admin-only">${u.comentariosPuntos}</td>
         <td class="admin-only">${u.comentarios ?? ""}</td>
         <td class="admin-only">
           <button onclick="editarUsuario('${u.id}')">✏️</button>
@@ -294,15 +294,14 @@ function pintarTabla(lista) {
 // GUARDAR / EDITAR
 function guardarUsuario() {
   const data = {
-    control: controlUsuario.value,
-    nombre: nombreUsuario.value,
-    area: areaUsuario.value || "",
+  control: controlUsuario.value,
+  nombre: nombreUsuario.value,
+  area: areaUsuario.value || "",
+  puntosActuales: Number(puntosUsuario.value) || 0,
+  comentariosPuntos: comentariosPuntosUsuario.value || "",
+  comentarios: comentariosUsuario.value || ""
+};
 
-    puntosActuales: Number(puntosUsuario.value) || 0,
-    puntosAcumulados: comentariosPuntosUsuario.value || "",
-
-    comentarios: comentariosUsuario.value || ""
-  };
 
   db.collection("usuarios")
     .doc(controlUsuario.value)
@@ -435,6 +434,7 @@ function filtrarUsuarios() {
 
 </body>
 </html>
+
 
 
 
