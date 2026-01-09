@@ -105,13 +105,16 @@ td {
 
 <table>
   <thead>
-    <tr>
-      <th>Control</th>
-      <th>Nombre</th>
-      <th>Puntos</th>
-      <th class="admin-only">Acciones</th>
-    </tr>
-  </thead>
+  <tr>
+    <th>Control</th>
+    <th>Nombre</th>
+    <th>Puntos</th>
+    <th class="admin-only">Puntos acumulados</th>
+    <th class="admin-only">Comentarios</th>
+    <th class="admin-only">Acciones</th>
+  </tr>
+</thead>
+
   <tbody id="listaPuntos"></tbody>
 </table>
 
@@ -143,15 +146,15 @@ const comentariosUsuario = document.getElementById("comentariosUsuario");
 
 // LOGIN
 function login() {
-  if (document.getElementById("password").value === CONTRASENA) {
+  if (password.value === CONTRASENA) {
     logeado = true;
     document.body.classList.add("admin-mode");
+    formulario.style.display = "block";
     formUsuarios.style.display = "block";
     alert("Modo administrador activo");
-  } else {
-    alert("Contraseña incorrecta");
   }
 }
+
 
 // CARGAR USUARIOS
 db.collection("usuarios").onSnapshot(snapshot => {
@@ -165,15 +168,19 @@ db.collection("usuarios").onSnapshot(snapshot => {
         <td>${u.control}</td>
         <td>${u.nombre}</td>
         <td>${u.puntosActuales}</td>
-        ${logeado ? `
+
+        <td class="admin-only">${u.puntosAcumulados ?? 0}</td>
+        <td class="admin-only">${u.comentarios ?? ""}</td>
+
         <td class="admin-only">
           <button onclick="editarUsuario('${doc.id}')">✏️</button>
           <button onclick="eliminarUsuario('${doc.id}')">🗑️</button>
-        </td>` : ""}
+        </td>
       </tr>
     `;
   });
 });
+
 
 // GUARDAR / EDITAR
 function guardarUsuario() {
@@ -228,4 +235,5 @@ function cancelarUsuario() {
 
 </body>
 </html>
+
 
