@@ -500,40 +500,6 @@ function cerrarImagen() {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   btn.classList.add("active");
 }
-function obtenerUsuarioPorQR(userId) {
-  db.collection("usuarios").doc(userId).get()
-    .then(doc => {
-      if (!doc.exists) {
-        alert("Usuario no encontrado");
-        return;
-      }
-
-      const data = doc.data();
-
-      document.getElementById("nombreUsuario").textContent = data.nombre;
-      document.getElementById("puntosUsuario").textContent = data.puntos;
-      document.getElementById("resultadoQR").style.display = "block";
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Error al leer usuario");
-    });
-}
-function buscarUsuarioPorCodigo(codigo) {
-  db.collection("usuarios").doc(codigo).get()
-    .then(doc => {
-      if (!doc.exists) {
-        alert("Usuario no encontrado");
-        return;
-      }
-
-      const data = doc.data();
-
-      document.getElementById("nombreUsuario").textContent = data.nombre;
-      document.getElementById("puntosUsuario").textContent = data.puntos;
-      document.getElementById("resultadoBarcode").style.display = "block";
-    });
-}
 
 
 
@@ -548,6 +514,7 @@ function buscarUsuarioPorCodigo(codigo) {
 
 </body>
 </html>
+
 
 
 
