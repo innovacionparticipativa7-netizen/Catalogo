@@ -298,16 +298,19 @@ body {
   <a href="puntos.html" class="tab" style="display:flex; justify-content:center;">💰 Puntos IP</a>
 </div>
   
-<div style="max-width:400px;margin:auto;">
-  <h2>📦 Escanear código de barras</h2>
+<div style="max-width:400px;margin:auto;text-align:center;">
+  <button id="btnScan" class="save">📷 Escanear código de barras</button>
 
-  <div id="barcode-reader" style="width:300px;height:200px;"></div>
+  <div id="barcode-reader"
+       style="width:300px;height:220px;margin:15px auto;display:none;">
+  </div>
 
-  <div id="resultadoBarcode" style="margin-top:15px;display:none;">
+  <div id="resultadoBarcode" style="display:none;">
     <h3 id="nombreUsuario"></h3>
     <p>Puntos IP: <strong id="puntosUsuario"></strong></p>
   </div>
 </div>
+
 
 
 
@@ -401,33 +404,41 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 /*Codigo de barras*/
-Quagga.init({
-  inputStream: {
-    name: "Live",
-    type: "LiveStream",
-    target: document.querySelector("#barcode-reader"),
-    constraints: {
-      facingMode: "environment"
-    }
-  },
-  decoder: {
-    readers: [
-      "code_128_reader",
-      "ean_reader",
-      "ean_8_reader"
-    ]
-  }
-}, function(err) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-  Quagga.start();
-});
+let escaneando = false;
 
+document.getElementById("btnScan").addEventListener("click", () => {
+  if (escaneando) return;
+  escaneando = true;
+
+  document.getElementById("barcode-reader").style.display = "block";
+
+  Quagga.init({
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
+      target: document.querySelector("#barcode-reader"),
+      constraints: { facingMode: "environment" }
+    },
+    decoder: {
+      readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
+    }
+  }, function(err) {
+    if (err) {
+      console.error(err);
+      escaneando = false;
+      return;
+    }
+    Quagga.start();
+  });
+});
 Quagga.onDetected(function(result) {
   const codigo = result.codeResult.code;
-  Quagga.stop(); // evita lecturas múltiples
+
+  Quagga.stop();
+  escaneando = false;
+
+  document.getElementById("barcode-reader").style.display = "none";
+
   buscarUsuarioPorCodigo(codigo);
 });
 
@@ -566,12 +577,9 @@ function buscarUsuarioPorCodigo(codigo) {
       document.getElementById("nombreUsuario").textContent = data.nombre;
       document.getElementById("puntosUsuario").textContent = data.puntos;
       document.getElementById("resultadoBarcode").style.display = "block";
-    })
-    .catch(err => {
-      console.error(err);
-      alert("Error al leer usuario");
     });
 }
+
 
 
 </script>
@@ -585,6 +593,7 @@ function buscarUsuarioPorCodigo(codigo) {
 
 </body>
 </html>
+
 
 
 
