@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Tienda de Premios IP</title>
-<script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
 
 
 <!-- Firebase -->
@@ -299,17 +298,11 @@ body {
 </div>
   
 <div style="max-width:400px;margin:auto;text-align:center;">
-  <button id="btnScan" class="save">📷 Escanear código de barras</button>
-
-  <div id="barcode-reader"
-       style="width:300px;height:220px;margin:15px auto;display:none;">
-  </div>
-
-  <div id="resultadoBarcode" style="display:none;">
-    <h3 id="nombreUsuario"></h3>
-    <p>Puntos IP: <strong id="puntosUsuario"></strong></p>
-  </div>
+  <a href="scanner.html">
+    <button class="save">📷 Escanear código de barras</button>
+  </a>
 </div>
+
 
 
 
@@ -403,44 +396,6 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
-/*Codigo de barras*/
-let escaneando = false;
-
-document.getElementById("btnScan").addEventListener("click", () => {
-  if (escaneando) return;
-  escaneando = true;
-
-  document.getElementById("barcode-reader").style.display = "block";
-
-  Quagga.init({
-    inputStream: {
-      name: "Live",
-      type: "LiveStream",
-      target: document.querySelector("#barcode-reader"),
-      constraints: { facingMode: "environment" }
-    },
-    decoder: {
-      readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
-    }
-  }, function(err) {
-    if (err) {
-      console.error(err);
-      escaneando = false;
-      return;
-    }
-    Quagga.start();
-  });
-});
-Quagga.onDetected(function(result) {
-  const codigo = result.codeResult.code;
-
-  Quagga.stop();
-  escaneando = false;
-
-  document.getElementById("barcode-reader").style.display = "none";
-
-  buscarUsuarioPorCodigo(codigo);
-});
 
 
 /* CARGA */
@@ -593,6 +548,7 @@ function buscarUsuarioPorCodigo(codigo) {
 
 </body>
 </html>
+
 
 
 
