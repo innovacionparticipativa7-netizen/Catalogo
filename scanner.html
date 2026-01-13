@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Escanear código</title>
+
+<script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #111827;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+#barcode-reader {
+  width: 320px;
+  height: 240px;
+  margin: 20px auto;
+}
+button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📦 Escanea el código de barras</h2>
+
+<div id="barcode-reader"></div>
+
+<button onclick="cancelar()">❌ Cancelar</button>
+
+<script>
+// Firebase
+firebase.initializeApp({
+  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
+  authDomain: "catalogo-ee5b7.firebaseapp.com",
+  projectId: "catalogo-ee5b7"
+});
+
+const db = firebase.firestore();
+
+// Iniciar cámara automáticamente
+Quagga.init({
+  inputStream: {
+    name: "Live",
+    type: "LiveStream",
+    target: document.querySelector("#barcode-reader"),
+    constraints: { facingMode: "environment" }
+  },
+  decoder: {
+    readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
+  }
+}, err => {
+  if (!err) Quagga.start();
+});
+
+// Detectar código
+Quagga.onDetected(result => {
+  const codigo = result.codeResult.code;
+  Quagga.stop();
+  buscarUsuario(codigo);
+});
+
+function buscarUsuario(codigo) {
+  db.collection("usuarios").doc(codigo).get().then(doc => {
+    if (!doc.exists) {
+      alert("Usuario no encontrado");
+      return;
+    }
+
+    const data = doc.data();
+    alert(`Usuario: ${data.nombre}\nPuntos: ${data.puntos}`);
+
+    // Opcional: volver a la tienda
+    window.location.href = "index.html";
+  });
+}
+
+function cancelar() {
+  Quagga.stop();
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
