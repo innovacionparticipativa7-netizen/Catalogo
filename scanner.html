@@ -24,11 +24,23 @@ body {
   margin: 20px auto;
 }
 button {
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: none;
+  font-size: 22px;
+  padding: 16px 26px;
+  border-radius: 12px;
+  margin: 8px;
   cursor: pointer;
 }
+  .btn-principal {
+  font-size: 26px;
+  padding: 20px 34px;
+}
+
+.btn-secundario {
+  font-size: 20px;
+  padding: 14px 22px;
+}
+
+
 </style>
 </head>
 
@@ -38,17 +50,24 @@ button {
 
 <!-- BOTONES -->
 <div style="margin-bottom:20px;">
-  <button onclick="usarLector()">📟 Usar lector</button>
-  <button onclick="usarCamara()">📷 Usar cámara</button>
+<button class="btn-principal" onclick="usarLector()">📟 Usar lector</button>
+<button class="btn-principal" onclick="usarCamara()">📷 Usar cámara</button>
+
 </div>
 
 <!-- INPUT PARA LECTOR -->
 <input
   id="barcodeInput"
   type="text"
-  autofocus
-  style="opacity:0; position:absolute;"
+  inputmode="numeric"
+  autocomplete="off"
+  style="
+    position: fixed;
+    top: -1000px;
+    left: -1000px;
+  "
 >
+
 
 <!-- CÁMARA -->
 <div id="barcode-reader" style="display:none;"></div>
@@ -58,8 +77,8 @@ button {
   <h3 id="nombreUsuario"></h3>
   <p>Puntos IP: <strong id="puntosUsuario"></strong></p>
 
-  <button onclick="volverAEscanear()">🔄 Volver a escanear</button>
-  <button onclick="volver()">⬅ Volver</button>
+<button class="btn-secundario" onclick="volverAEscanear()">🔄 Volver a escanear</button>
+<button class="btn-secundario" onclick="volver()">⬅ Volver</button>
 </div>
 
 
@@ -79,22 +98,28 @@ let modo = null;
 // ===== LECTOR =====
 function usarLector() {
   modo = "lector";
+
   document.getElementById("barcode-reader").style.display = "none";
   document.getElementById("resultado").style.display = "none";
 
   const input = document.getElementById("barcodeInput");
   input.value = "";
-  input.focus();
-}
 
+  // 🔥 Forzar foco real
+  setTimeout(() => {
+    input.focus();
+  }, 100);
+}
 document.getElementById("barcodeInput").addEventListener("keydown", e => {
   if (modo !== "lector") return;
+
   if (e.key === "Enter") {
     const codigo = e.target.value.trim();
     e.target.value = "";
     buscarUsuario(codigo);
   }
 });
+
 
 // ===== CÁMARA =====
 function usarCamara() {
@@ -138,8 +163,16 @@ function buscarUsuario(codigo) {
 
     document.getElementById("resultado").style.display = "block";
     document.getElementById("barcode-reader").style.display = "none";
+
+    // 🔥 SI ES LECTOR, mantener foco
+    if (modo === "lector") {
+      setTimeout(() => {
+        document.getElementById("barcodeInput").focus();
+      }, 100);
+    }
   });
 }
+
   function volverAEscanear() {
   document.getElementById("resultado").style.display = "none";
 
@@ -181,6 +214,7 @@ function volver() {
 
 </body>
 </html>
+
 
 
 
