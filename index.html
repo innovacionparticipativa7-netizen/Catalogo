@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Tienda de Premios IP</title>
+<script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -295,6 +297,18 @@ body {
   <button class="tab active">🎁 Premios</button>
   <a href="puntos.html" class="tab" style="display:flex; justify-content:center;">💰 Puntos IP</a>
 </div>
+  
+<div style="max-width:400px;margin:auto;">
+  <h2>📦 Escanear código de barras</h2>
+
+  <div id="barcode-reader" style="width:300px;height:200px;"></div>
+
+  <div id="resultadoBarcode" style="margin-top:15px;display:none;">
+    <h3 id="nombreUsuario"></h3>
+    <p>Puntos IP: <strong id="puntosUsuario"></strong></p>
+  </div>
+</div>
+
 
 
 
@@ -386,6 +400,37 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+/*Codigo de barras*/
+Quagga.init({
+  inputStream: {
+    name: "Live",
+    type: "LiveStream",
+    target: document.querySelector("#barcode-reader"),
+    constraints: {
+      facingMode: "environment"
+    }
+  },
+  decoder: {
+    readers: [
+      "code_128_reader",
+      "ean_reader",
+      "ean_8_reader"
+    ]
+  }
+}, function(err) {
+  if (err) {
+    console.error(err);
+    return;
+  }
+  Quagga.start();
+});
+
+Quagga.onDetected(function(result) {
+  const codigo = result.codeResult.code;
+  Quagga.stop(); // evita lecturas múltiples
+  buscarUsuarioPorCodigo(codigo);
+});
+
 
 /* CARGA */
 db.collection("productos").orderBy("precio", "asc").onSnapshot(snapshot => {
@@ -489,6 +534,44 @@ function cerrarImagen() {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   btn.classList.add("active");
 }
+function obtenerUsuarioPorQR(userId) {
+  db.collection("usuarios").doc(userId).get()
+    .then(doc => {
+      if (!doc.exists) {
+        alert("Usuario no encontrado");
+        return;
+      }
+
+      const data = doc.data();
+
+      document.getElementById("nombreUsuario").textContent = data.nombre;
+      document.getElementById("puntosUsuario").textContent = data.puntos;
+      document.getElementById("resultadoQR").style.display = "block";
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Error al leer usuario");
+    });
+}
+function buscarUsuarioPorCodigo(codigo) {
+  db.collection("usuarios").doc(codigo).get()
+    .then(doc => {
+      if (!doc.exists) {
+        alert("Usuario no encontrado");
+        return;
+      }
+
+      const data = doc.data();
+
+      document.getElementById("nombreUsuario").textContent = data.nombre;
+      document.getElementById("puntosUsuario").textContent = data.puntos;
+      document.getElementById("resultadoBarcode").style.display = "block";
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Error al leer usuario");
+    });
+}
 
 
 </script>
@@ -496,10 +579,13 @@ function cerrarImagen() {
 <!-- MODAL IMAGEN -->
 <div id="modalImagen" onclick="cerrarImagen()">
   <img id="imagenGrande">
+
+  
 </div>
 
 </body>
 </html>
+
 
 
 
