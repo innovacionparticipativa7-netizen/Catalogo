@@ -37,6 +37,13 @@ button {
 <h2>📦 Escanea el código de barras</h2>
 
 <div id="barcode-reader"></div>
+  
+<div id="resultado" style="display:none; margin-top:20px;">
+  <h3 id="nombreUsuario"></h3>
+  <p>Puntos IP: <strong id="puntosUsuario"></strong></p>
+
+  <button onclick="volver()">⬅ Volver</button>
+</div>
 
 <button onclick="cancelar()">❌ Cancelar</button>
 
@@ -80,11 +87,12 @@ function buscarUsuario(codigo) {
     }
 
     const data = doc.data();
-    alert(`Usuario: ${data.nombre}\nPuntos: ${data.puntosActuales}`);
+    document.getElementById("nombreUsuario").textContent = data.nombre;
+    document.getElementById("puntosUsuario").textContent = data.puntosActuales;
+    
+    document.getElementById("resultado").style.display = "block";
+    document.getElementById("barcode-reader").style.display = "none";
 
-
-    // Opcional: volver a la tienda
-    window.location.href = "index.html";
   });
 }
 
@@ -92,10 +100,15 @@ function cancelar() {
   Quagga.stop();
   window.location.href = "index.html";
 }
+  function volver() {
+  window.location.href = "index.html";
+}
+
 </script>
 
 </body>
 </html>
+
 
 
 
