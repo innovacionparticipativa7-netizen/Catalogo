@@ -36,19 +36,34 @@ button {
 
 <h2>📦 Escanea el código de barras</h2>
 
-<div id="barcode-reader"></div>
-  
+<!-- BOTONES -->
+<div style="margin-bottom:20px;">
+  <button onclick="usarLector()">📟 Usar lector</button>
+  <button onclick="usarCamara()">📷 Usar cámara</button>
+</div>
+
+<!-- INPUT PARA LECTOR -->
+<input
+  id="barcodeInput"
+  type="text"
+  autofocus
+  style="opacity:0; position:absolute;"
+>
+
+<!-- CÁMARA -->
+<div id="barcode-reader" style="display:none;"></div>
+
+<!-- RESULTADO -->
 <div id="resultado" style="display:none; margin-top:20px;">
   <h3 id="nombreUsuario"></h3>
   <p>Puntos IP: <strong id="puntosUsuario"></strong></p>
-
   <button onclick="volver()">⬅ Volver</button>
 </div>
 
 <button onclick="cancelar()">❌ Cancelar</button>
 
 <script>
-// Firebase
+// ===== FIREBASE =====
 firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
@@ -56,29 +71,57 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+let modo = null;
 
-// Iniciar cámara automáticamente
-Quagga.init({
-  inputStream: {
-    name: "Live",
-    type: "LiveStream",
-    target: document.querySelector("#barcode-reader"),
-    constraints: { facingMode: "environment" }
-  },
-  decoder: {
-    readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
+// ===== LECTOR =====
+function usarLector() {
+  modo = "lector";
+  document.getElementById("barcode-reader").style.display = "none";
+  document.getElementById("resultado").style.display = "none";
+
+  const input = document.getElementById("barcodeInput");
+  input.value = "";
+  input.focus();
+}
+
+document.getElementById("barcodeInput").addEventListener("keydown", e => {
+  if (modo !== "lector") return;
+  if (e.key === "Enter") {
+    const codigo = e.target.value.trim();
+    e.target.value = "";
+    buscarUsuario(codigo);
   }
-}, err => {
-  if (!err) Quagga.start();
 });
 
-// Detectar código
+// ===== CÁMARA =====
+function usarCamara() {
+  modo = "camara";
+  document.getElementById("resultado").style.display = "none";
+  document.getElementById("barcode-reader").style.display = "block";
+
+  Quagga.init({
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
+      target: document.querySelector("#barcode-reader"),
+      constraints: { facingMode: "environment" }
+    },
+    decoder: {
+      readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
+    }
+  }, err => {
+    if (!err) Quagga.start();
+  });
+}
+
 Quagga.onDetected(result => {
+  if (modo !== "camara") return;
   const codigo = result.codeResult.code;
   Quagga.stop();
   buscarUsuario(codigo);
 });
 
+// ===== FIRESTORE =====
 function buscarUsuario(codigo) {
   db.collection("usuarios").doc(codigo).get().then(doc => {
     if (!doc.exists) {
@@ -89,25 +132,25 @@ function buscarUsuario(codigo) {
     const data = doc.data();
     document.getElementById("nombreUsuario").textContent = data.nombre;
     document.getElementById("puntosUsuario").textContent = data.puntosActuales;
-    
+
     document.getElementById("resultado").style.display = "block";
     document.getElementById("barcode-reader").style.display = "none";
-
   });
 }
 
 function cancelar() {
-  Quagga.stop();
-  window.location.href = "index.html";
-}
-  function volver() {
+  if (window.Quagga) Quagga.stop();
   window.location.href = "index.html";
 }
 
+function volver() {
+  window.location.href = "index.html";
+}
 </script>
 
 </body>
 </html>
+
 
 
 
