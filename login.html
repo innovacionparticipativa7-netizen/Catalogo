@@ -147,16 +147,17 @@ const db = firebase.firestore();
 
 /* ===== LOGIN ===== */
 function iniciarSesion(codigo) {
-  // Limpia espacios
   codigo = codigo.trim();
 
-  // 👉 TOMA SOLO LOS PRIMEROS 6 NÚMEROS
-  codigo = codigo.replace(/\D/g, '').substring(0, 6);
+  // 👉 EXTRAER EXACTAMENTE 6 DÍGITOS CONSECUTIVOS
+  const match = codigo.match(/\d{6}/);
 
-  if (codigo.length < 6) {
+  if (!match) {
     alert("Código inválido");
     return;
   }
+
+  codigo = match[0]; // aquí ya son SOLO 6 números
 
   db.collection("usuarios")
     .where("control", "==", codigo)
@@ -185,6 +186,7 @@ function iniciarSesion(codigo) {
       alert("Error al iniciar sesión");
     });
 }
+
 
 
 
@@ -248,6 +250,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
