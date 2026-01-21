@@ -2,28 +2,148 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Login IP</title>
+<title>Ingreso | IP</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+/* TARJETA */
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.25);
+  text-align: center;
+}
+
+/* LOGO */
+.login-card img {
+  width: 90px;
+  margin-bottom: 15px;
+}
+
+/* TITULO */
+.login-card h2 {
+  margin: 10px 0 5px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.login-card p {
+  margin-bottom: 25px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* INPUT */
+.login-card input {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid #cbd5f5;
+  margin-bottom: 15px;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* BOTONES */
+.btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-secondary {
+  background: #111827;
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* TEXTO */
+.info {
+  font-size: 13px;
+  color: #475569;
+  margin-top: 10px;
+}
+</style>
 </head>
 
 <body>
 
-<h2>🔐 Iniciar sesión</h2>
+<div class="login-card">
 
-<input id="empleadoInput" placeholder="Número de empleado">
-<button onclick="loginManual()">Ingresar</button>
+  <img src="logo.png" alt="IP">
 
+  <h2>Ingreso de Empleado</h2>
+  <p>Escanea tu código o ingresa tu número</p>
+
+  <input id="empleadoInput" placeholder="Número de empleado">
+
+  <button class="btn btn-primary" onclick="loginManual()">✍️ Ingresar</button>
+
+  <button class="btn btn-secondary" onclick="activarLector()">📟 Usar lector</button>
+  <button class="btn btn-secondary" onclick="usarCamara()">📷 Escanear con cámara</button>
+
+<div id="cameraBox" style="display:none; margin-top:20px;">
+  <div id="barcode-reader" style="width:100%; height:260px;"></div>
+  <button class="btn btn-secondary" onclick="cerrarCamara()">❌ Cancelar cámara</button>
+</div>
+
+  <div class="info">
+    El lector se activa automáticamente al presionar el botón
+  </div>
+
+</div>
+
+<!-- INPUT OCULTO PARA LECTOR -->
 <input id="lectorInput" style="position:absolute; left:-1000px;">
 
 <script>
+/* FIREBASE */
 firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   projectId: "catalogo-ee5b7"
 });
 const db = firebase.firestore();
 
+/* LOGIN */
 function iniciarSesion(codigo) {
   db.collection("usuarios").doc(codigo).get().then(doc => {
     if (!doc.exists) {
@@ -43,19 +163,69 @@ function iniciarSesion(codigo) {
 
 function loginManual() {
   const codigo = document.getElementById("empleadoInput").value.trim();
-  if (!codigo) return alert("Ingresa número");
+  if (!codigo) return alert("Ingresa tu número");
   iniciarSesion(codigo);
 }
 
-// LECTOR
-document.getElementById("lectorInput").focus();
+/* LECTOR */
+function activarLector() {
+  document.getElementById("lectorInput").focus();
+}
+
 document.getElementById("lectorInput").addEventListener("keydown", e => {
   if (e.key === "Enter") {
     iniciarSesion(e.target.value.trim());
     e.target.value = "";
   }
 });
+  <script>
+// ===== CAMARA =====
+function usarCamara() {
+  document.getElementById("cameraBox").style.display = "block";
+
+  Quagga.init({
+    inputStream: {
+      name: "Live",
+      type: "LiveStream",
+      target: document.querySelector("#barcode-reader"),
+      constraints: {
+        facingMode: "environment"
+      }
+    },
+    decoder: {
+      readers: [
+        "code_128_reader",
+        "ean_reader",
+        "ean_8_reader"
+      ]
+    }
+  }, err => {
+    if (err) {
+      alert("No se pudo abrir la cámara");
+      return;
+    }
+    Quagga.start();
+  });
+}
+
+Quagga.onDetected(data => {
+  const codigo = data.codeResult.code;
+
+  Quagga.stop();
+  document.getElementById("cameraBox").style.display = "none";
+
+  iniciarSesion(codigo);
+});
+
+function cerrarCamara() {
+  if (window.Quagga) Quagga.stop();
+  document.getElementById("cameraBox").style.display = "none";
+}
+</script>
+
 </script>
 
 </body>
 </html>
+
+
