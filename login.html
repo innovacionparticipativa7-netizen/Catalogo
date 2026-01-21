@@ -147,6 +147,8 @@ const db = firebase.firestore();
 
 /* ===== LOGIN ===== */
 function iniciarSesion(codigo) {
+  codigo = codigo.trim();
+
   db.collection("usuarios")
     .where("numeroEmpleado", "==", codigo)
     .limit(1)
@@ -161,7 +163,7 @@ function iniciarSesion(codigo) {
       const data = doc.data();
 
       sessionStorage.setItem("usuario", JSON.stringify({
-        id: doc.id,
+        id: doc.id,                 // ID automático
         nombre: data.nombre,
         puntos: data.puntosActuales,
         rol: data.rol || "usuario"
@@ -169,17 +171,10 @@ function iniciarSesion(codigo) {
 
       window.location.href = "index.html";
     })
-    .catch(err => {
-      console.error(err);
+    .catch(error => {
+      console.error("Error login:", error);
       alert("Error al iniciar sesión");
     });
-}
-
-    window.location.href = "index.html";
-  }).catch(err => {
-    console.error(err);
-    alert("Error al iniciar sesión");
-  });
 }
 
 function loginManual() {
@@ -242,6 +237,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
