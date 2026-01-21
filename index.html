@@ -285,6 +285,13 @@ body {
 </head>
 
 <body>
+
+  <div>
+  👤 <span id="nombreUsuario"></span> |
+  💰 <span id="puntosUsuario"></span> IP
+  <button onclick="cerrarSesion()">Salir</button>
+</div>
+
   
 <h1 style="text-align:center;">
   <img src="logo.png" alt="Logo IP" style="width:80px; vertical-align:middle; margin-right:8px;">
@@ -355,7 +362,13 @@ body {
 
 
   <script>
-    
+    const sesion = sessionStorage.getItem("usuario");
+if (!sesion) {
+  window.location.href = "login.html";
+}
+
+const usuario = JSON.parse(sesion);
+
 /* DOM */
 const listaProductos = document.getElementById("listaProductos");
 const buscador = document.getElementById("buscador");
@@ -501,6 +514,13 @@ function cerrarImagen() {
   btn.classList.add("active");
 }
 
+document.getElementById("nombreUsuario").textContent = usuario.nombre;
+document.getElementById("puntosUsuario").textContent = usuario.puntos;
+
+function cerrarSesion() {
+  sessionStorage.clear();
+  window.location.href = "login.html";
+}
 
 
 </script>
@@ -514,6 +534,7 @@ function cerrarImagen() {
 
 </body>
 </html>
+
 
 
 
