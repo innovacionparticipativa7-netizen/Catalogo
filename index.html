@@ -377,6 +377,19 @@ body {
   }
 
 }
+  #listaProductos {
+  width: 100%;
+}
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (min-width: 601px) and (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
 
 </style>
@@ -611,6 +624,7 @@ function cerrarSesion() {
 
 </body>
 </html>
+
 
 
 
