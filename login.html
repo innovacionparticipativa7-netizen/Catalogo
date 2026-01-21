@@ -147,7 +147,16 @@ const db = firebase.firestore();
 
 /* ===== LOGIN ===== */
 function iniciarSesion(codigo) {
+  // Limpia espacios
   codigo = codigo.trim();
+
+  // 👉 TOMA SOLO LOS PRIMEROS 6 NÚMEROS
+  codigo = codigo.replace(/\D/g, '').substring(0, 6);
+
+  if (codigo.length < 6) {
+    alert("Código inválido");
+    return;
+  }
 
   db.collection("usuarios")
     .where("control", "==", codigo)
@@ -163,7 +172,7 @@ function iniciarSesion(codigo) {
       const data = doc.data();
 
       sessionStorage.setItem("usuario", JSON.stringify({
-        id: doc.id,                 // ID automático
+        id: doc.id,
         nombre: data.nombre,
         puntos: data.puntosActuales,
         rol: data.rol || "usuario"
@@ -176,6 +185,7 @@ function iniciarSesion(codigo) {
       alert("Error al iniciar sesión");
     });
 }
+
 
 
 function loginManual() {
@@ -238,6 +248,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
