@@ -153,11 +153,13 @@ function iniciarSesion(codigo) {
       return;
     }
 
-    sessionStorage.setItem("usuario", JSON.stringify({
-      id: codigo,
-      nombre: doc.data().nombre,
-      puntos: doc.data().puntosActuales
-    }));
+sessionStorage.setItem("usuario", JSON.stringify({
+  id: codigo,
+  nombre: doc.data().nombre,
+  puntos: doc.data().puntosActuales,
+  rol: doc.data().rol || "usuario"
+}));
+
 
     window.location.href = "index.html";
   }).catch(err => {
@@ -226,6 +228,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
