@@ -109,7 +109,7 @@ body {
 /* GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px;
 }
 
@@ -330,22 +330,34 @@ body {
   }
 
 }
-  @media (max-width: 600px) {
-
+@media (max-width: 600px) {
   .grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
 
   .card {
-    padding: 14px;
+    padding: 8px;
   }
 
   .card img {
-    height: 150px;
+    height: 90px;
   }
 
+  .card h3 {
+    font-size: 12px;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+
+  .stock {
+    font-size: 11px;
+  }
 }
+
   @media (max-width: 600px) {
 
   .top-bar {
@@ -599,6 +611,7 @@ function cerrarSesion() {
 
 </body>
 </html>
+
 
 
 
