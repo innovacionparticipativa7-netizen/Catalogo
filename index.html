@@ -390,8 +390,13 @@ body {
 
 <div class="tabs" style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
   <button class="tab active">🎁 Premios</button>
-  <a href="puntos.html" class="tab" style="display:flex; justify-content:center;">💰 Puntos IP</a>
+
+  <a href="puntos.html" class="tab admin-only"
+     style="display:none; justify-content:center;">
+     💰 Puntos IP
+  </a>
 </div>
+
   
 <div class="scanner-box">
   <a href="scanner.html">
@@ -414,15 +419,10 @@ body {
     <input id="buscador"
            class="search"
            placeholder="Buscar premio..."
-           onkeyup="aplicarFiltros()">
+           onkeyup="renderProductos()">
   </div>
 
   <!-- DERECHA -->
-  <div class="admin-login">
-    <input type="password" id="password" placeholder="Admin">
-    <button onclick="login()">OK</button>
-  </div>
-</div>
 
 
 <div id="filtros" class="filtros">
@@ -449,20 +449,35 @@ body {
 </div>
 
 
-
-
-  <script>
-    const sesion = sessionStorage.getItem("usuario");
-if (!sesion) {
-  window.location.href = "login.html";
-}
+<script>
+/* ===== SESIÓN ===== */
+const sesion = sessionStorage.getItem("usuario");
+if (!sesion) window.location.href = "login.html";
 
 const usuario = JSON.parse(sesion);
+const esAdmin = usuario.rol === "admin";
 
-/* DOM */
+/* ===== MOSTRAR USUARIO ===== */
+document.getElementById("nombreUsuario").textContent = usuario.nombre;
+document.getElementById("puntosUsuario").textContent = usuario.puntos;
+
+/* ===== ADMIN UI ===== */
+if (esAdmin) {
+  document.querySelectorAll(".admin-only")
+    .forEach(el => el.style.display = "flex");
+}
+
+/* ===== FIREBASE ===== */
+firebase.initializeApp({
+  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
+  authDomain: "catalogo-ee5b7.firebaseapp.com",
+  projectId: "catalogo-ee5b7"
+});
+const db = firebase.firestore();
+
+/* ===== DOM ===== */
 const listaProductos = document.getElementById("listaProductos");
 const buscador = document.getElementById("buscador");
-const password = document.getElementById("password");
 const formulario = document.getElementById("formulario");
 
 const editIndex = document.getElementById("editIndex");
@@ -470,45 +485,17 @@ const descripcion = document.getElementById("descripcion");
 const disponible = document.getElementById("disponible");
 const precio = document.getElementById("precio");
 const imagen = document.getElementById("imagen");
-    const userId = document.getElementById("userId");
-const controlUsuario = document.getElementById("controlUsuario");
-const nombreUsuario = document.getElementById("nombreUsuario");
-const puntosUsuario = document.getElementById("puntosUsuario");
 
-
-/* ADMIN */
-const CONTRASENA = "1234";
-let logeado = false;
 let productos = [];
 
-function login() {
-  if (password.value === CONTRASENA) {
-    logeado = true;
-    formulario.style.display = "block";
-    alert("Modo administrador activo");
-    renderProductos();
-    renderUsuarios();
-  }
-}
-
-/* FIREBASE */
-firebase.initializeApp({
-  apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
-  authDomain: "catalogo-ee5b7.firebaseapp.com",
-  projectId: "catalogo-ee5b7"
-});
-
-const db = firebase.firestore();
-
-
-/* CARGA */
+/* ===== CARGA PRODUCTOS ===== */
 db.collection("productos").orderBy("precio", "asc").onSnapshot(snapshot => {
   productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
   generarFiltros();
   renderProductos();
 });
 
-/* FILTROS */
+/* ===== FILTROS ===== */
 function generarFiltros() {
   const cont = document.getElementById("filtros");
   cont.innerHTML = "<strong>Filtrar por puntos:</strong>";
@@ -518,20 +505,19 @@ function generarFiltros() {
     .forEach(p => {
       cont.innerHTML += `
         <label>
-          <input type="checkbox" value="${p}" onchange="aplicarFiltros()">
+          <input type="checkbox" value="${p}" onchange="renderProductos()">
           ${p} IP
-        </label>
-      `;
+        </label>`;
     });
 }
 
-/* RENDER */
+/* ===== RENDER ===== */
 function renderProductos() {
   listaProductos.innerHTML = "";
 
   const texto = buscador.value.toLowerCase();
   const precios = [...document.querySelectorAll("#filtros input:checked")]
-                    .map(c => c.value);
+    .map(c => c.value);
 
   productos.forEach(p => {
     if (!p.desc.toLowerCase().includes(texto)) return;
@@ -539,11 +525,12 @@ function renderProductos() {
 
     listaProductos.innerHTML += `
       <div class="card">
-        <img src="${p.img}" onclick="abrirImagen('${p.img}')" style="cursor: zoom-in;">
+        <img src="${p.img}" onclick="abrirImagen('${p.img}')">
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div class="stock">Disponibles: ${p.disp}</div>
-        ${logeado ? `
+
+        ${esAdmin ? `
         <div class="actions">
           <button class="edit" onclick="editarProducto('${p.id}')">Editar</button>
           <button class="delete" onclick="eliminarProducto('${p.id}')">Eliminar</button>
@@ -552,9 +539,7 @@ function renderProductos() {
   });
 }
 
-function aplicarFiltros() { renderProductos(); }
-
-/* CRUD */
+/* ===== CRUD ADMIN ===== */
 function guardarProducto() {
   const data = {
     desc: descripcion.value,
@@ -568,7 +553,9 @@ function guardarProducto() {
     : db.collection("productos").add(data);
 
   editIndex.value = "";
+  formulario.style.display = "none";
 }
+
 function editarProducto(id) {
   db.collection("productos").doc(id).get().then(d => {
     const p = d.data();
@@ -577,43 +564,31 @@ function editarProducto(id) {
     disponible.value = p.disp;
     precio.value = p.precio;
     imagen.value = p.img;
+    formulario.style.display = "block";
   });
 }
+
 function eliminarProducto(id) {
   if (confirm("¿Eliminar producto?"))
     db.collection("productos").doc(id).delete();
 }
-  function abrirImagen(src) {
-  const modal = document.getElementById("modalImagen");
-  const img = document.getElementById("imagenGrande");
-  img.src = src;
-  modal.style.display = "flex";
-}
 
+/* ===== IMAGEN ===== */
+function abrirImagen(src) {
+  document.getElementById("imagenGrande").src = src;
+  document.getElementById("modalImagen").style.display = "flex";
+}
 function cerrarImagen() {
   document.getElementById("modalImagen").style.display = "none";
 }
-    function mostrarSeccion(seccion, btn) {
-  document.getElementById("seccion-premios").style.display =
-    seccion === "premios" ? "block" : "none";
 
-  document.getElementById("seccion-puntos").style.display =
-    seccion === "puntos" ? "block" : "none";
-
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  btn.classList.add("active");
-}
-
-document.getElementById("nombreUsuario").textContent = usuario.nombre;
-document.getElementById("puntosUsuario").textContent = usuario.puntos;
-
+/* ===== SESIÓN ===== */
 function cerrarSesion() {
   sessionStorage.clear();
   window.location.href = "login.html";
 }
-
-
 </script>
+
   
 <!-- MODAL IMAGEN -->
 <div id="modalImagen" onclick="cerrarImagen()">
@@ -624,6 +599,7 @@ function cerrarSesion() {
 
 </body>
 </html>
+
 
 
 
