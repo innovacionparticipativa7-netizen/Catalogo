@@ -147,19 +147,33 @@ const db = firebase.firestore();
 
 /* ===== LOGIN ===== */
 function iniciarSesion(codigo) {
-  db.collection("usuarios").doc(codigo).get().then(doc => {
-    if (!doc.exists) {
-      alert("Empleado no registrado");
-      return;
-    }
+  db.collection("usuarios")
+    .where("numeroEmpleado", "==", codigo)
+    .limit(1)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        alert("Empleado no registrado");
+        return;
+      }
 
-sessionStorage.setItem("usuario", JSON.stringify({
-  id: codigo,
-  nombre: doc.data().nombre,
-  puntos: doc.data().puntosActuales,
-  rol: doc.data().rol || "usuario"
-}));
+      const doc = snapshot.docs[0];
+      const data = doc.data();
 
+      sessionStorage.setItem("usuario", JSON.stringify({
+        id: doc.id,
+        nombre: data.nombre,
+        puntos: data.puntosActuales,
+        rol: data.rol || "usuario"
+      }));
+
+      window.location.href = "index.html";
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Error al iniciar sesión");
+    });
+}
 
     window.location.href = "index.html";
   }).catch(err => {
@@ -228,6 +242,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
