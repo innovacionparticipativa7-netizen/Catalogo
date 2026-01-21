@@ -150,7 +150,7 @@ function iniciarSesion(codigo) {
   codigo = codigo.trim();
 
   db.collection("usuarios")
-    .where("numeroEmpleado", "==", codigo)
+    .where("control", "==", codigo)
     .limit(1)
     .get()
     .then(snapshot => {
@@ -176,6 +176,7 @@ function iniciarSesion(codigo) {
       alert("Error al iniciar sesión");
     });
 }
+
 
 function loginManual() {
   const codigo = document.getElementById("empleadoInput").value.trim();
@@ -237,6 +238,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
