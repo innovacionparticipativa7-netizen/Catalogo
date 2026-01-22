@@ -119,6 +119,7 @@ body {
   <button class="btn btn-primary" onclick="loginManual()">✍️ Ingresar</button>
 
   <button class="btn btn-secondary" onclick="activarLector()">📟 Usar lector</button>
+  <div id="debugCodigo" style="margin-top:10px; font-size:14px; color:#1e293b;"></div>
   <button class="btn btn-secondary" onclick="usarCamara()">📷 Escanear con cámara</button>
 
 <div id="cameraBox" style="display:none; margin-top:20px;">
@@ -235,12 +236,26 @@ function usarCamara() {
   });
 }
 
+let yaDetectado = false;
+
 Quagga.onDetected(result => {
-  const codigo = result.codeResult.code;
+  if (yaDetectado) return;
+  yaDetectado = true;
+
+  const codigoLeido = result.codeResult.code;
+
+  document.getElementById("debugCodigo").innerText =
+    "Código leído: " + codigoLeido;
+
   Quagga.stop();
   document.getElementById("cameraBox").style.display = "none";
-  iniciarSesion(codigo);
+
+  iniciarSesion(codigoLeido);
+
+  setTimeout(() => yaDetectado = false, 1500);
 });
+
+
 
 function cerrarCamara() {
   if (window.Quagga) Quagga.stop();
@@ -252,6 +267,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
