@@ -225,7 +225,7 @@ function usarCamara() {
       constraints: { facingMode: "environment" }
     },
     decoder: {
-      readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
+      readers: ["code_128_reader"]
     }
   }, err => {
     if (err) {
@@ -243,17 +243,19 @@ Quagga.onDetected(result => {
   yaDetectado = true;
 
   const codigoLeido = result.codeResult.code;
+  const formato = result.codeResult.format;
 
   document.getElementById("debugCodigo").innerText =
-    "Código leído: " + codigoLeido;
+    `Código leído: ${codigoLeido} | Formato: ${formato}`;
+
+  console.log("RAW:", codigoLeido, "FORMATO:", formato);
 
   Quagga.stop();
   document.getElementById("cameraBox").style.display = "none";
 
-  iniciarSesion(codigoLeido);
-
-  setTimeout(() => yaDetectado = false, 1500);
+  // NO iniciar sesión aún, solo observar
 });
+
 
 
 
@@ -267,6 +269,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
