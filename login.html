@@ -193,6 +193,7 @@ function iniciarSesion(codigo) {
     });
 }
 
+
 function loginManual() {
   const codigo = document.getElementById("empleadoInput").value.trim();
   if (!codigo) return alert("Ingresa tu número");
@@ -239,24 +240,11 @@ function usarCamara() {
 let yaDetectado = false;
 
 Quagga.onDetected(result => {
-  if (yaDetectado) return;
-  yaDetectado = true;
-
-  const codigoLeido = result.codeResult.code;
-  const formato = result.codeResult.format;
-
-  document.getElementById("debugCodigo").innerText =
-    `Código leído: ${codigoLeido} | Formato: ${formato}`;
-
-  console.log("RAW:", codigoLeido, "FORMATO:", formato);
-
+  const codigo = result.codeResult.code;
   Quagga.stop();
   document.getElementById("cameraBox").style.display = "none";
-
-  // NO iniciar sesión aún, solo observar
+  iniciarSesion(codigo);
 });
-
-
 
 
 function cerrarCamara() {
@@ -269,6 +257,7 @@ function cerrarCamara() {
 
 </body>
 </html>
+
 
 
 
