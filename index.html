@@ -429,7 +429,14 @@ body {
   </a>
 </div>
 
-
+<button class="save admin-only"
+        onclick="nuevoProducto()"
+        style="margin-bottom:15px;">
+  ➕ Nuevo producto
+</button>
+  <button class="cancel" onclick="formulario.style.display='none'">
+  Cancelar
+</button>
 
 
 
@@ -455,14 +462,6 @@ body {
 
 <!-- ⬇️ ESTO VA FUERA -->
 <div id="formulario" class="admin-panel" style="display:none;">
-  <button class="save admin-only"
-        onclick="nuevoProducto()"
-        style="margin-bottom:15px;">
-  ➕ Nuevo producto
-</button>
-  <button class="cancel" onclick="formulario.style.display='none'">
-  Cancelar
-</button>
 
 
   <input type="hidden" id="editIndex">
@@ -653,6 +652,7 @@ function cerrarSesion() {
 
 </body>
 </html>
+
 
 
 
