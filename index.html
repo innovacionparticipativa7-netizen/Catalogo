@@ -455,6 +455,16 @@ body {
 
 <!-- ⬇️ ESTO VA FUERA -->
 <div id="formulario" class="admin-panel" style="display:none;">
+  <button class="save admin-only"
+        onclick="nuevoProducto()"
+        style="margin-bottom:15px;">
+  ➕ Nuevo producto
+</button>
+  <button class="cancel" onclick="formulario.style.display='none'">
+  Cancelar
+</button>
+
+
   <input type="hidden" id="editIndex">
   <input id="descripcion" placeholder="Descripción">
   <input id="disponible" type="number" placeholder="Disponible">
@@ -568,20 +578,28 @@ function renderProductos() {
 
 /* ===== CRUD ADMIN ===== */
 function guardarProducto() {
+  if (!descripcion.value || !precio.value || !disponible.value) {
+    alert("Completa todos los campos");
+    return;
+  }
+
   const data = {
     desc: descripcion.value,
     disp: Number(disponible.value),
     precio: Number(precio.value),
-    img: imagen.value
+    img: imagen.value || "https://via.placeholder.com/300"
   };
 
-  editIndex.value
-    ? db.collection("productos").doc(editIndex.value).update(data)
-    : db.collection("productos").add(data);
+  if (editIndex.value) {
+    db.collection("productos").doc(editIndex.value).update(data);
+  } else {
+    db.collection("productos").add(data);
+  }
 
-  editIndex.value = "";
   formulario.style.display = "none";
+  editIndex.value = "";
 }
+
 
 function editarProducto(id) {
   db.collection("productos").doc(id).get().then(d => {
@@ -614,6 +632,15 @@ function cerrarSesion() {
   sessionStorage.clear();
   window.location.href = "login.html";
 }
+  function nuevoProducto() {
+  editIndex.value = "";
+  descripcion.value = "";
+  disponible.value = "";
+  precio.value = "";
+  imagen.value = "";
+  formulario.style.display = "block";
+}
+
 </script>
 
   
@@ -626,6 +653,7 @@ function cerrarSesion() {
 
 </body>
 </html>
+
 
 
 
