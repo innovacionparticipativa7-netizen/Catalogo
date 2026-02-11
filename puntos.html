@@ -98,8 +98,13 @@ td {
 }
 
 .admin-only {
-  display: none;
+  display: table-cell;
 }
+
+.admin-panel {
+  display: block !important;
+}
+
 
 .admin-mode .admin-only {
   display: table-cell;
@@ -145,12 +150,6 @@ table td button {
     placeholder="🔍 Buscar..."
     oninput="filtrarUsuarios()"
   >
-
-  <div class="admin-login">
-    <input type="password" id="password" class="input-premios" placeholder="Admin">
-    <button class="btn-premios" onclick="login()">OK</button>
-  </div>
-</div>
 
 
     <div class="admin-only">
@@ -218,15 +217,9 @@ const db = firebase.firestore();
 const usuariosRef = db.collection("usuarios");
 let usuariosCache = [];
 
-
-// ADMIN
-const CONTRASENA = "1234";
-let logeado = false;
-
 // DOM
 const listaPuntos = document.getElementById("listaPuntos");
 const formUsuarios = document.getElementById("formUsuarios");
-const password = document.getElementById("password");
 
 const userId = document.getElementById("userId");
 const controlUsuario = document.getElementById("controlUsuario");
@@ -237,15 +230,6 @@ const comentariosUsuario = document.getElementById("comentariosUsuario");
 const areaUsuario = document.getElementById("areaUsuario");
   
 
-// LOGIN
-function login() {
-  if (password.value === CONTRASENA) {
-    logeado = true;
-    document.body.classList.add("admin-mode");
-    formUsuarios.style.display = "block";
-    alert("Modo administrador activo");
-  }
-}
 
 
 // CARGAR USUARIOS
@@ -440,11 +424,19 @@ function filtrarUsuarios() {
 
   pintarTabla(filtrados);
 }
+  // ACTIVAR ADMIN AUTOMÁTICAMENTE
+window.onload = function() {
+  document.body.classList.add("admin-mode");
+  formUsuarios.style.display = "block";
+};
+
+
 
 </script>
 
 </body>
 </html>
+
 
 
 
