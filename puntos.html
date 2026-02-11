@@ -298,9 +298,12 @@ function guardarUsuario() {
 };
 
 
-  db.collection("usuarios")
-    .doc(controlUsuario.value)
-    .set(data, { merge: true });
+  const idFinal = userId.value || controlUsuario.value;
+
+db.collection("usuarios")
+  .doc(idFinal)
+  .set(data, { merge: true });
+
 
   cancelarUsuario();
 }
@@ -310,17 +313,16 @@ function guardarUsuario() {
 
 // EDITAR
 function editarUsuario(id) {
-  db.collection("usuarios").doc(id).get().then(doc => {
-    const u = doc.data();
+  const u = usuariosCache.find(user => user.id === id);
+  if (!u) return;
 
-    userId.value = id;
-    controlUsuario.value = u.control;
-    nombreUsuario.value = u.nombre;
-    areaUsuario.value = u.area ?? "";
-    puntosUsuario.value = u.puntosActuales ?? 0;
-    comentariosPuntosUsuario.value = u.comentariosPuntos ?? "";
-    comentariosUsuario.value = u.comentarios ?? "";
-  });
+  userId.value = id;
+  controlUsuario.value = u.control;
+  nombreUsuario.value = u.nombre;
+  areaUsuario.value = u.area ?? "";
+  puntosUsuario.value = u.puntosActuales ?? 0;
+  comentariosPuntosUsuario.value = u.comentariosPuntos ?? "";
+  comentariosUsuario.value = u.comentarios ?? "";
 }
 
 
@@ -436,6 +438,7 @@ window.onload = function() {
 
 </body>
 </html>
+
 
 
 
