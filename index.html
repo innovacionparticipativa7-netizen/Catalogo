@@ -434,9 +434,6 @@ body {
         style="margin-bottom:15px;">
   ➕ Nuevo producto
 </button>
-  <button class="cancel" onclick="formulario.style.display='none'">
-  Cancelar
-</button>
 
 
 
@@ -470,8 +467,11 @@ body {
   <input id="precio" type="number" placeholder="Puntos IP">
   <input id="imagen" placeholder="URL imagen">
   <button onclick="guardarProducto()">Guardar</button>
+   <button class="cancel" onclick="formulario.style.display='none'">
 </div>
-
+<div id="loading" style="text-align:center;padding:40px;font-weight:600;">
+Cargando premios...
+</div>
 <!-- ⬇️ Y ESTO TAMBIÉN -->
 <div id="listaProductos" class="grid"></div>
 
@@ -523,12 +523,21 @@ const precio = document.getElementById("precio");
 const imagen = document.getElementById("imagen");
 
 let productos = [];
+let cargado = false;
 
 /* ===== CARGA PRODUCTOS ===== */
+/* ===== CARGA PRODUCTOS ===== */
 db.collection("productos").orderBy("precio", "asc").onSnapshot(snapshot => {
+
   productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  cargado = true;
+
+  document.getElementById("loading").style.display = "none";
+
   generarFiltros();
   renderProductos();
+
 });
 
 /* ===== FILTROS ===== */
@@ -549,6 +558,9 @@ function generarFiltros() {
 
 /* ===== RENDER ===== */
 function renderProductos() {
+  
+  if (!cargado) return;
+  
   listaProductos.innerHTML = "";
 
   const texto = buscador.value.toLowerCase();
