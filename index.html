@@ -271,12 +271,8 @@ body {
   cursor: pointer;
 }
 
-.admin-only {
-  display: none;
-}
-
 .admin-mode .admin-only {
-  display: table-cell;
+  display: block;
 }
 .user-bar {
   background: white;
@@ -499,8 +495,7 @@ document.getElementById("puntosUsuario").textContent = usuario.puntos;
 
 /* ===== ADMIN UI ===== */
 if (esAdmin) {
-  document.querySelectorAll(".admin-only")
-    .forEach(el => el.style.display = "flex");
+  document.body.classList.add("admin-mode");
 }
 
 /* ===== FIREBASE ===== */
