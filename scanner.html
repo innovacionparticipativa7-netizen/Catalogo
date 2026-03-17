@@ -51,7 +51,6 @@ button {
 <!-- BOTONES -->
 <div style="margin-bottom:20px;">
 <button class="btn-principal" onclick="usarLector()">📟 Usar lector</button>
-<button class="btn-principal" onclick="usarCamara()">📷 Usar cámara</button>
 
 </div>
 
@@ -105,10 +104,12 @@ function usarLector() {
   const input = document.getElementById("barcodeInput");
   input.value = "";
 
-  // 🔥 Forzar foco real
-  setTimeout(() => {
+  input.focus();
+
+  // 🔥 mantener foco siempre
+  setInterval(() => {
     input.focus();
-  }, 100);
+  }, 500);
 }
 document.getElementById("barcodeInput").addEventListener("keydown", e => {
   if (modo !== "lector") return;
@@ -116,10 +117,18 @@ document.getElementById("barcodeInput").addEventListener("keydown", e => {
   if (e.key === "Enter") {
     let codigo = e.target.value.trim();
 
-    // 🔥 DEJAR SOLO NÚMEROS
+    // 🔥 dejar solo números
     codigo = codigo.replace(/\D/g, '');
 
+    // 🔥 quitar ceros al inicio
+    codigo = codigo.replace(/^0+/, '');
+
     e.target.value = "";
+
+    if (!codigo) {
+      alert("Código inválido");
+      return;
+    }
 
     buscarUsuario(codigo);
   }
@@ -127,32 +136,7 @@ document.getElementById("barcodeInput").addEventListener("keydown", e => {
 
 
 // ===== CÁMARA =====
-function usarCamara() {
-  modo = "camara";
-  document.getElementById("resultado").style.display = "none";
-  document.getElementById("barcode-reader").style.display = "block";
 
-  Quagga.init({
-    inputStream: {
-      name: "Live",
-      type: "LiveStream",
-      target: document.querySelector("#barcode-reader"),
-      constraints: { facingMode: "environment" }
-    },
-    decoder: {
-      readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
-    }
-  }, err => {
-    if (!err) Quagga.start();
-  });
-}
-
-Quagga.onDetected(result => {
-  if (modo !== "camara") return;
-  const codigo = result.codeResult.code;
-  Quagga.stop();
-  buscarUsuario(codigo);
-});
 
 // ===== FIRESTORE =====
 function buscarUsuario(codigo) {
@@ -215,6 +199,9 @@ function cancelar() {
 function volver() {
   window.location.href = "index.html";
 }
+  window.addEventListener("load", () => {
+  usarLector();
+});
 </script>
 
 </body>
