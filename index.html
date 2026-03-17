@@ -464,6 +464,8 @@ body {
   <input id="imagen" placeholder="URL imagen">
   <button onclick="guardarProducto()">Guardar</button>
    <button class="cancel" onclick="formulario.style.display='none'">
+  Cancelar
+</button>
 </div>
 <div id="loading" style="text-align:center;padding:40px;font-weight:600;">
 Cargando premios...
@@ -522,18 +524,32 @@ let cargado = false;
 
 /* ===== CARGA PRODUCTOS ===== */
 /* ===== CARGA PRODUCTOS ===== */
-db.collection("productos").orderBy("precio", "asc").onSnapshot(snapshot => {
+db.collection("productos")
+  .orderBy("precio", "asc")
+  .onSnapshot(
 
-  productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // ✅ ÉXITO
+    snapshot => {
+      productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-  cargado = true;
+      cargado = true;
 
-  document.getElementById("loading").style.display = "none";
+      document.getElementById("loading").style.display = "none";
 
-  generarFiltros();
-  renderProductos();
+      generarFiltros();
+      renderProductos();
+    },
 
-});
+    // ❌ ERROR
+    error => {
+      console.error("Error Firebase:", error);
+
+      const loading = document.getElementById("loading");
+      loading.innerText = "Error al cargar premios";
+      loading.style.color = "red";
+    }
+
+  );
 
 /* ===== FILTROS ===== */
 function generarFiltros() {
@@ -563,7 +579,7 @@ function renderProductos() {
     .map(c => c.value);
 
   productos.forEach(p => {
-    if (!p.desc.toLowerCase().includes(texto)) return;
+    if (!p.desc || !p.desc.toLowerCase().includes(texto)) return;
     if (precios.length && !precios.includes(String(p.precio))) return;
 
     listaProductos.innerHTML += `
