@@ -114,8 +114,13 @@ document.getElementById("barcodeInput").addEventListener("keydown", e => {
   if (modo !== "lector") return;
 
   if (e.key === "Enter") {
-    const codigo = e.target.value.trim();
+    let codigo = e.target.value.trim();
+
+    // 🔥 DEJAR SOLO NÚMEROS
+    codigo = codigo.replace(/\D/g, '');
+
     e.target.value = "";
+
     buscarUsuario(codigo);
   }
 });
