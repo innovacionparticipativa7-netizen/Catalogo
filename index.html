@@ -556,7 +556,6 @@ function cargarInicial() {
       renderProductos();
     });
 }
-  cargarInicial();
   
 
     
@@ -634,25 +633,25 @@ function guardarProducto() {
 
 function editarProducto(id) {
 
-  if (!productos.length) {
-    alert("Datos aún no cargados");
-    return;
-  }
-
   if (!esAdmin) {
     alert("No tienes permiso");
     return;
   }
 
-  db.collection("productos").doc(id).get().then(d => {
-    const p = d.data();
-    editIndex.value = id;
-    descripcion.value = p.desc;
-    disponible.value = p.disp;
-    precio.value = p.precio;
-    imagen.value = p.img;
-    formulario.style.display = "block";
-  });
+  const p = productos.find(prod => prod.id === id);
+
+  if (!p) {
+    alert("Producto no encontrado");
+    return;
+  }
+
+  editIndex.value = id;
+  descripcion.value = p.desc;
+  disponible.value = p.disp;
+  precio.value = p.precio;
+  imagen.value = p.img;
+
+  formulario.style.display = "block";
 }
 
 function eliminarProducto(id) {
