@@ -540,15 +540,26 @@ db.collection("productos")
 
     // ❌ ERROR
     error => {
-      console.error("Error Firebase:", error);
+  console.error("Error Firebase:", error);
 
-      const loading = document.getElementById("loading");
-      loading.innerText = "Error al cargar premios";
-      loading.style.color = "red";
-    }
-
+  const loading = document.getElementById("loading");
+  loading.innerText = "Reconectando...";
+  loading.style.color = "orange";
+}
   );
+function cargarInicial() {
+  db.collection("productos")
+    .orderBy("precio", "asc")
+    .get()
+    .then(snapshot => {
+      productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderProductos();
+    });
+}
+  cargarInicial();
+  
 
+    
 /* ===== FILTROS ===== */
 function generarFiltros() {
   const cont = document.getElementById("filtros");
@@ -567,9 +578,9 @@ function generarFiltros() {
 
 /* ===== RENDER ===== */
 function renderProductos() {
-  
+
   if (!cargado) return;
-  
+
   listaProductos.innerHTML = "";
 
   const texto = buscador.value.toLowerCase();
@@ -622,6 +633,17 @@ function guardarProducto() {
 
 
 function editarProducto(id) {
+
+  if (!productos.length) {
+    alert("Datos aún no cargados");
+    return;
+  }
+
+  if (!esAdmin) {
+    alert("No tienes permiso");
+    return;
+  }
+
   db.collection("productos").doc(id).get().then(d => {
     const p = d.data();
     editIndex.value = id;
