@@ -493,6 +493,10 @@ document.getElementById("puntosUsuario").textContent = usuario.puntos;
 /* ===== ADMIN UI ===== */
 if (esAdmin) {
   document.body.classList.add("admin-mode");
+
+  document.querySelectorAll(".admin-only").forEach(el => {
+    el.style.display = "block";
+  });
 }
 
 /* ===== FIREBASE ===== */
