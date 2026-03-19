@@ -522,34 +522,33 @@ const imagen = document.getElementById("imagen");
 let productos = [];
 
 /* ===== FIRESTORE (TIEMPO REAL) ===== */
+// ⚡ CARGA RÁPIDA INICIAL
 db.collection("productos")
   .orderBy("precio", "asc")
-  .onSnapshot(
+  .get()
+  .then(snapshot => {
+    productos = snapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
 
-    snapshot => {
-      productos = snapshot.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      }));
+    document.getElementById("loading").style.display = "none";
 
-      document.getElementById("loading").style.display = "none";
+    generarFiltros();
+    renderProductos();
+  });
 
-      generarFiltros();
-      renderProductos();
-    },
+// 🔄 (OPCIONAL) Tiempo real después de cargar
+db.collection("productos")
+  .orderBy("precio", "asc")
+  .onSnapshot(snapshot => {
+    productos = snapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
 
-    error => {
-      console.error("Error Firebase:", error);
-
-      const loading = document.getElementById("loading");
-      loading.innerText = "Reconectando...";
-      loading.style.color = "orange";
-
-      setTimeout(() => {
-        loading.style.display = "none";
-      }, 2000);
-    }
-  );
+    renderProductos();
+  });
 
 /* ===== FILTROS ===== */
 function generarFiltros() {
@@ -570,19 +569,20 @@ function generarFiltros() {
 
 /* ===== RENDER ===== */
 function renderProductos() {
-  listaProductos.innerHTML = "";
 
   const texto = buscador.value.toLowerCase();
   const precios = [...document.querySelectorAll("#filtros input:checked")]
     .map(c => c.value);
 
+  let html = "";
+
   productos.forEach(p => {
     if (!p.desc?.toLowerCase().includes(texto)) return;
     if (precios.length && !precios.includes(String(p.precio))) return;
 
-    listaProductos.innerHTML += `
+    html += `
       <div class="card">
-        <img src="${p.img}" onclick="abrirImagen('${p.img}')">
+        <img src="${p.img}" loading="lazy" width="200" height="150" onclick="abrirImagen('${p.img}')">
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div class="stock">Disponibles: ${p.disp}</div>
@@ -594,6 +594,8 @@ function renderProductos() {
         </div>` : ""}
       </div>`;
   });
+
+  listaProductos.innerHTML = html;
 }
 
 /* ===== CRUD ===== */
