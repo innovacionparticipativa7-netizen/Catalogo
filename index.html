@@ -504,15 +504,20 @@ if (esAdmin) {
 }
 
 /* ===== FIREBASE ===== */
-firebase.firestore().enablePersistence()
-  .catch(err => {
-    console.warn("Persistencia no disponible", err);
-  });
-  firebase.initializeApp({
+// ✅ 1. Inicializar Firebase PRIMERO
+firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
   projectId: "catalogo-ee5b7"
 });
+
+const db = firebase.firestore();
+
+// ✅ 2. Luego activar persistencia
+db.enablePersistence()
+  .catch(err => {
+    console.warn("Persistencia no disponible", err);
+  });
 const db = firebase.firestore();
 
 /* ===== DOM ===== */
