@@ -486,7 +486,10 @@ Cargando premios...
 <script>
 /* ===== SESIÓN ===== */
 const sesion = sessionStorage.getItem("usuario");
-if (!sesion) window.location.href = "login.html";
+if (!sesion) {
+  console.warn("No hay sesión");
+  window.location.href = "login.html";
+}
 
 const usuario = JSON.parse(sesion);
 const esAdmin = usuario.rol === "admin";
@@ -501,7 +504,11 @@ if (esAdmin) {
 }
 
 /* ===== FIREBASE ===== */
-firebase.initializeApp({
+firebase.firestore().enablePersistence()
+  .catch(err => {
+    console.warn("Persistencia no disponible", err);
+  });
+  firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
   projectId: "catalogo-ee5b7"
@@ -525,8 +532,10 @@ let productos = [];
 // ⚡ CARGA RÁPIDA INICIAL
 db.collection("productos")
   .orderBy("precio", "asc")
-  .get()
-  .then(snapshot => {
+  .onSnapshot(snapshot => {
+
+    if (!snapshot) return;
+
     productos = snapshot.docs.map(d => ({
       id: d.id,
       ...d.data()
@@ -536,18 +545,18 @@ db.collection("productos")
 
     generarFiltros();
     renderProductos();
-  });
 
-// 🔄 (OPCIONAL) Tiempo real después de cargar
-db.collection("productos")
-  .orderBy("precio", "asc")
-  .onSnapshot(snapshot => {
-    productos = snapshot.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
+  }, error => {
+    console.error("Error Firebase:", error);
 
-    renderProductos();
+    const loading = document.getElementById("loading");
+    loading.innerText = "Error de conexión...";
+    loading.style.color = "red";
+
+    // 🔁 reintento automático REAL
+    setTimeout(() => {
+      location.reload();
+    }, 3000);
   });
 
 /* ===== FILTROS ===== */
