@@ -8,6 +8,7 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="icon" href="Favicon.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -406,7 +407,9 @@ body {
   </div>
   <button onclick="cerrarSesion()">Salir</button>
 </div>
-
+<button onclick="exportarExcel()" class="save admin-only">
+  📊 Exportar a Excel
+</button>
 
   
 <h1 style="text-align:center;">
@@ -684,6 +687,32 @@ function nuevoProducto() {
 function cerrarSesion() {
   sessionStorage.clear();
   window.location.href = "login.html";
+}
+  function exportarExcel() {
+ if (!esAdmin) {
+    alert("No tienes permiso para exportar");
+    return;
+  }
+  if (!productos.length) {
+    alert("No hay datos para exportar");
+    return;
+  }
+
+  // Convertir datos
+  const datos = productos.map(p => ({
+    "Premio": p.desc,
+    "Disponibles": p.disp
+  }));
+
+  // Crear hoja
+  const hoja = XLSX.utils.json_to_sheet(datos);
+
+  // Crear libro
+  const libro = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(libro, hoja, "Premios");
+
+  // Descargar archivo
+  XLSX.writeFile(libro, "Premios_IP.xlsx");
 }
 </script>
 
