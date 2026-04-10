@@ -517,7 +517,15 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
-let ingresos = [];
+
+  // ✅ 2. Luego activar persistencia
+db.enablePersistence()
+  .catch(err => {
+    console.warn("Persistencia no disponible", err);
+  });
+  
+  
+  let ingresos = [];
 
 db.collection("ingresos")
   .orderBy("fecha", "desc")
@@ -527,11 +535,7 @@ db.collection("ingresos")
       ...d.data()
     }));
   });
-// ✅ 2. Luego activar persistencia
-db.enablePersistence()
-  .catch(err => {
-    console.warn("Persistencia no disponible", err);
-  });
+
 
 /* ===== DOM ===== */
 const listaProductos = document.getElementById("listaProductos");
