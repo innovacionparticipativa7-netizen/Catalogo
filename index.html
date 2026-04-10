@@ -410,7 +410,9 @@ body {
 <button onclick="exportarExcel()" class="save admin-only">
   📊 Exportar a Excel
 </button>
-
+<button onclick="exportarIngresosExcel()" class="save admin-only">
+  📥 Exportar Ingresos
+</button>
   
 <h1 style="text-align:center;">
   <img src="logo.png" alt="Logo IP" style="width:80px; vertical-align:middle; margin-right:8px;">
@@ -515,7 +517,16 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+let ingresos = [];
 
+db.collection("ingresos")
+  .orderBy("fecha", "desc")
+  .onSnapshot(snapshot => {
+    ingresos = snapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+  });
 // ✅ 2. Luego activar persistencia
 db.enablePersistence()
   .catch(err => {
@@ -714,6 +725,36 @@ function cerrarSesion() {
   // Descargar archivo
   XLSX.writeFile(libro, "Premios_IP.xlsx");
 }
+
+function exportarIngresosExcel() {
+
+  if (!esAdmin) {
+    alert("No tienes permiso");
+    return;
+  }
+
+  if (!ingresos.length) {
+    alert("No hay registros");
+    return;
+  }
+
+  const datos = ingresos.map(i => ({
+    "Empleado ID": i.empleadoId,
+    "Nombre": i.nombre,
+    "Fecha": i.fecha?.toDate
+      ? i.fecha.toDate().toLocaleString()
+      : new Date(i.fecha).toLocaleString()
+  }));
+
+  const hoja = XLSX.utils.json_to_sheet(datos);
+  const libro = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(libro, hoja, "Ingresos");
+
+  XLSX.writeFile(libro, "Ingresos_IP.xlsx");
+}
+
+  
 </script>
 
 
