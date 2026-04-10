@@ -178,28 +178,33 @@ function iniciarSesion(codigo) {
       const data = doc.data();
 
       // 📝 REGISTRAR INGRESO
-db.collection("ingresos").add({
-  empleadoId: codigo,
-  nombre: data.nombre,
-  fecha: new Date()
-})
-.then(() => {
-  console.log("Ingreso guardado");
+  db.collection("usuarios")
+    .where("control", "==", codigo)
+    .limit(1)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        alert("Empleado no registrado");
+        return;
+      }
 
-  // 🔥 SOLO DESPUÉS rediriges
-  sessionStorage.setItem("usuario", JSON.stringify({
-    id: doc.id,
-    nombre: data.nombre,
-    puntos: data.puntosActuales,
-    rol: data.rol || "usuario"
-  }));
+      const doc = snapshot.docs[0];
+      const data = doc.data();
 
-  window.location.href = "index.html";
-})
-.catch(err => {
-  console.error("Error guardando ingreso:", err);
-});
+      sessionStorage.setItem("usuario", JSON.stringify({
+        id: doc.id,
+        nombre: data.nombre,
+        puntos: data.puntosActuales,
+        rol: data.rol || "usuario"
+      }));
 
+      window.location.href = "index.html";
+    })
+    .catch(error => {
+      console.error("Error login:", error);
+      alert("Error al iniciar sesión");
+    });
+}
 
 function loginManual() {
   const codigo = document.getElementById("empleadoInput").value.trim();
