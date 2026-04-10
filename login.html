@@ -140,23 +140,17 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 let bloqueado = false;
-/* ===== LOGIN ===== */
+
+  
+  /* ===== LOGIN ===== */
 function iniciarSesion(codigo) {
-   if (bloqueado) return;
+  if (bloqueado) return;
   bloqueado = true;
 
   setTimeout(() => bloqueado = false, 2000);
 
-  // 1️⃣ limpiar espacios
-  codigo = codigo.trim();
+  codigo = codigo.trim().replace(/\D/g, '').replace(/^0+/, '');
 
-  // 2️⃣ quitar todo lo que no sea número
-  codigo = codigo.replace(/\D/g, '');
-
-  // 3️⃣ quitar ceros a la izquierda
-  codigo = codigo.replace(/^0+/, '');
-
-  // 4️⃣ validar
   if (!codigo) {
     alert("Código inválido");
     return;
@@ -169,6 +163,7 @@ function iniciarSesion(codigo) {
     .limit(1)
     .get()
     .then(snapshot => {
+
       if (snapshot.empty) {
         alert("Empleado no registrado");
         return;
@@ -177,28 +172,24 @@ function iniciarSesion(codigo) {
       const doc = snapshot.docs[0];
       const data = doc.data();
 
-      // 📝 REGISTRAR INGRESO
-  db.collection("usuarios")
-    .where("control", "==", codigo)
-    .limit(1)
-    .get()
-    .then(snapshot => {
-      if (snapshot.empty) {
-        alert("Empleado no registrado");
-        return;
-      }
-
-      const doc = snapshot.docs[0];
-      const data = doc.data();
-
-      sessionStorage.setItem("usuario", JSON.stringify({
-        id: doc.id,
+      // 📝 REGISTRAR INGRESO (AQUÍ ESTABA EL ERROR)
+      return db.collection("ingresos").add({
+        empleadoId: codigo,
         nombre: data.nombre,
-        puntos: data.puntosActuales,
-        rol: data.rol || "usuario"
-      }));
+        fecha: new Date()
+      }).then(() => {
 
-      window.location.href = "index.html";
+        console.log("Ingreso registrado");
+
+        sessionStorage.setItem("usuario", JSON.stringify({
+          id: doc.id,
+          nombre: data.nombre,
+          puntos: data.puntosActuales,
+          rol: data.rol || "usuario"
+        }));
+
+        window.location.href = "index.html";
+      });
     })
     .catch(error => {
       console.error("Error login:", error);
@@ -206,6 +197,10 @@ function iniciarSesion(codigo) {
     });
 }
 
+
+
+
+  
 function loginManual() {
   const codigo = document.getElementById("empleadoInput").value.trim();
   if (!codigo) return alert("Ingresa tu número");
