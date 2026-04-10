@@ -181,29 +181,24 @@ function iniciarSesion(codigo) {
 db.collection("ingresos").add({
   empleadoId: codigo,
   nombre: data.nombre,
-  fecha: new Date(), // fecha y hora actual
+  fecha: new Date()
 })
 .then(() => {
-  console.log("Ingreso registrado");
+  console.log("Ingreso guardado");
+
+  // 🔥 SOLO DESPUÉS rediriges
+  sessionStorage.setItem("usuario", JSON.stringify({
+    id: doc.id,
+    nombre: data.nombre,
+    puntos: data.puntosActuales,
+    rol: data.rol || "usuario"
+  }));
+
+  window.location.href = "index.html";
 })
-.catch(error => {
-  console.error("Error al registrar ingreso:", error);
+.catch(err => {
+  console.error("Error guardando ingreso:", err);
 });
-
-      sessionStorage.setItem("usuario", JSON.stringify({
-        id: doc.id,
-        nombre: data.nombre,
-        puntos: data.puntosActuales,
-        rol: data.rol || "usuario"
-      }));
-
-      window.location.href = "index.html";
-    })
-    .catch(error => {
-      console.error("Error login:", error);
-      alert("Error al iniciar sesión");
-    });
-}
 
 
 function loginManual() {
