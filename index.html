@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tienda de Premios IP</title>
-
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -48,9 +48,6 @@ body {
   align-items: center;
   justify-content: space-between;
 }
-  .admin-login {
-  margin-right: 10px;
-}
 
 .search {
   padding: 10px;
@@ -62,6 +59,7 @@ body {
 .admin-login {
   display: flex;
   gap: 6px;
+  margin-right: 10px;
 }
 
 .admin-login input {
@@ -78,7 +76,6 @@ body {
   cursor: pointer;
 }
 
-/* FILTROS */
 .filtros {
   background: white;
   padding: 12px 16px;
@@ -98,16 +95,36 @@ body {
   gap: 5px;
 }
 
-/* FORM ADMIN */
 .admin-panel {
   background: white;
   padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  max-width: 500px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+  max-width: 520px;
 }
 
-/* GRID */
+.admin-panel h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.admin-panel input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.admin-panel input:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -162,7 +179,6 @@ body {
 .edit { background: #fde68a; }
 .delete { background: #fecaca; }
 
-/* MODAL IMAGEN */
 #modalImagen {
   position: fixed;
   inset: 0;
@@ -180,37 +196,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
-/* PANEL ADMIN */
-.admin-panel {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  margin-bottom: 30px;
-  max-width: 520px;
-}
 
-.admin-panel h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.admin-panel input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-}
-
-.admin-panel input:focus {
-  border-color: #2563eb;
-  outline: none;
-}
-/* TABS */
 .tabs {
   display: flex;
   gap: 10px;
@@ -225,6 +211,8 @@ body {
   background: white;
   cursor: pointer;
   font-weight: 600;
+  text-decoration: none;
+  color: inherit;
 }
 
 .tab.active {
@@ -232,6 +220,7 @@ body {
   color: white;
   border-color: #2563eb;
 }
+
 .tabla-puntos {
   width: 100%;
   background: white;
@@ -272,9 +261,6 @@ body {
   cursor: pointer;
 }
 
-.admin-mode .admin-only {
-  display: block;
-}
 .user-bar {
   background: white;
   padding: 14px 16px;
@@ -293,8 +279,10 @@ body {
   border-radius: 10px;
   padding: 10px 14px;
   font-size: 14px;
+  cursor: pointer;
 }
-  .scanner-box {
+
+.scanner-box {
   text-align: center;
   margin: 25px 0;
 }
@@ -311,82 +299,6 @@ body {
   font-weight: 700;
 }
 
-
-@media (max-width: 600px) {
-
-  body {
-    padding: 16px;
-  }
-
-  h1 {
-    font-size: 26px;
-  }
-
-  h1 img {
-    width: 48px !important;
-  }
-
-}
-@media (max-width: 600px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  .card {
-    padding: 8px;
-  }
-
-  .card img {
-    height: 90px;
-  }
-
-  .card h3 {
-    font-size: 12px;
-  }
-
-  .badge {
-    font-size: 10px;
-    padding: 4px 6px;
-  }
-
-  .stock {
-    font-size: 11px;
-  }
-}
-
-  @media (max-width: 600px) {
-
-  .top-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .search {
-    width: 100%;
-    font-size: 16px;
-  }
-
-  .filtros {
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-}
-  #listaProductos {
-  width: 100%;
-}
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-@media (min-width: 601px) and (max-width: 1023px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
 .admin-only {
   display: none;
 }
@@ -395,9 +307,34 @@ body {
   display: block;
 }
 
+#listaProductos {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .grid { grid-template-columns: repeat(5, 1fr); }
+}
+
+@media (min-width: 601px) and (max-width: 1023px) {
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 600px) {
+  body { padding: 16px; }
+  h1 { font-size: 26px; }
+  h1 img { width: 48px !important; }
+  .grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .card { padding: 8px; }
+  .card img { height: 90px; }
+  .card h3 { font-size: 12px; }
+  .badge { font-size: 10px; padding: 4px 6px; }
+  .stock { font-size: 11px; }
+  .top-bar { flex-direction: column; align-items: stretch; gap: 12px; }
+  .search { width: 100%; font-size: 16px; }
+  .filtros { overflow-x: auto; white-space: nowrap; }
+}
 </style>
 </head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <body>
 
 <div class="user-bar">
@@ -407,109 +344,74 @@ body {
   </div>
   <button onclick="cerrarSesion()">Salir</button>
 </div>
-<button onclick="exportarExcel()" class="save admin-only">
-  📊 Exportar a Excel
-</button>
-<button onclick="exportarIngresosExcel()" class="save admin-only">
-  📥 Exportar Ingresos
-</button>
-  
+
+<button onclick="exportarExcel()" class="save admin-only">📊 Exportar a Excel</button>
+<button onclick="exportarIngresosExcel()" class="save admin-only">📥 Exportar Ingresos</button>
+
 <h1 style="text-align:center;">
   <img src="logo.png" alt="Logo IP" style="width:80px; vertical-align:middle; margin-right:8px;">
   Tienda de Premios IP
   <img src="logo.png" alt="Logo IP" style="width:80px; vertical-align:middle; margin-right:8px;">
 </h1>
 
-<div class="tabs" style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+<div class="tabs">
   <button class="tab active">🎁 Premios</button>
-
-<a href="puntos.html" class="tab admin-only">
-  💰 Puntos IP
-</a>
+  <a href="puntos.html" class="tab admin-only">💰 Puntos IP</a>
 </div>
 
-  
-
-<button class="save admin-only"
-        onclick="nuevoProducto()"
-        style="margin-bottom:15px;">
+<button class="save admin-only" onclick="nuevoProducto()" style="margin-bottom:15px;">
   ➕ Nuevo producto
 </button>
 
+<div id="seccion-premios">
 
-
-
-
-
-<!-------------------------------------------------------Seccion Premios------------------------->
-  <div id="seccion-premios">
-<div class="top-bar">
-  <!-- IZQUIERDA -->
-  <div>
-    <input id="buscador"
-           class="search"
-           placeholder="Buscar premio..."
-           onkeyup="renderProductos()">
+  <div class="top-bar">
+    <div>
+      <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="renderProductos()">
+    </div>
+    <div id="filtros" class="filtros">
+      <strong>Filtrar por puntos:</strong>
+    </div>
   </div>
 
-  <!-- DERECHA -->
-  <div id="filtros" class="filtros">
-    <strong>Filtrar por puntos:</strong>
+  <div id="formulario" class="admin-panel" style="display:none;">
+    <input type="hidden" id="editIndex">
+    <input id="descripcion" placeholder="Descripción">
+    <input id="disponible" type="number" placeholder="Disponible">
+    <input id="precio" type="number" placeholder="Puntos IP">
+    <input id="imagen" placeholder="URL imagen">
+    <button onclick="guardarProducto()">Guardar</button>
+    <button class="cancel" onclick="document.getElementById('formulario').style.display='none'">Cancelar</button>
   </div>
-</div>
 
-<!-- ⬇️ ESTO VA FUERA -->
-<div id="formulario" class="admin-panel" style="display:none;">
+  <div id="loading" style="text-align:center;padding:40px;font-weight:600;">
+    Cargando premios...
+  </div>
 
-
-  <input type="hidden" id="editIndex">
-  <input id="descripcion" placeholder="Descripción">
-  <input id="disponible" type="number" placeholder="Disponible">
-  <input id="precio" type="number" placeholder="Puntos IP">
-  <input id="imagen" placeholder="URL imagen">
-  <button onclick="guardarProducto()">Guardar</button>
-   <button class="cancel" onclick="formulario.style.display='none'">
-  Cancelar
-</button>
-</div>
-<div id="loading" style="text-align:center;padding:40px;font-weight:600;">
-Cargando premios...
-</div>
-<!-- ⬇️ Y ESTO TAMBIÉN -->
-<div id="listaProductos" class="grid"></div>
-
-</div> <!-- FIN seccion-premios -->
-  
-
-<!------------------------------------- seccion de puntos------------------------------------->
- 
-
+  <div id="listaProductos" class="grid"></div>
 
 </div>
 
+<div id="modalImagen" onclick="cerrarImagen()">
+  <img id="imagenGrande">
+</div>
 
 <script>
-/* ===== SESIÓN ===== */
 const sesion = sessionStorage.getItem("usuario");
 if (!sesion) {
-  console.warn("No hay sesión");
   window.location.href = "login.html";
 }
 
 const usuario = JSON.parse(sesion);
 const esAdmin = usuario.rol === "admin";
 
-/* ===== UI USUARIO ===== */
 document.getElementById("nombreUsuario").textContent = usuario.nombre;
 document.getElementById("puntosUsuario").textContent = usuario.puntos;
 
-/* ===== ADMIN UI ===== */
 if (esAdmin) {
   document.body.classList.add("admin-mode");
 }
 
-/* ===== FIREBASE ===== */
-// ✅ 1. Inicializar Firebase PRIMERO
 firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
@@ -518,75 +420,48 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 
-  // ✅ 2. Luego activar persistencia
-db.enablePersistence()
-  .catch(err => {
-    console.warn("Persistencia no disponible", err);
-  });
-  
-  
-  let ingresos = [];
+db.enablePersistence().catch(err => {
+  console.warn("Persistencia no disponible", err);
+});
+
+let ingresos = [];
 
 db.collection("ingresos")
   .orderBy("fecha", "desc")
   .onSnapshot(snapshot => {
-    ingresos = snapshot.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
+    ingresos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
   });
 
-
-/* ===== DOM ===== */
 const listaProductos = document.getElementById("listaProductos");
-const buscador = document.getElementById("buscador");
-const formulario = document.getElementById("formulario");
-
-const editIndex = document.getElementById("editIndex");
-const descripcion = document.getElementById("descripcion");
-const disponible = document.getElementById("disponible");
-const precio = document.getElementById("precio");
-const imagen = document.getElementById("imagen");
+const buscador       = document.getElementById("buscador");
+const formulario     = document.getElementById("formulario");
+const editIndex      = document.getElementById("editIndex");
+const descripcion    = document.getElementById("descripcion");
+const disponible     = document.getElementById("disponible");
+const precio         = document.getElementById("precio");
+const imagen         = document.getElementById("imagen");
 
 let productos = [];
 
-/* ===== FIRESTORE (TIEMPO REAL) ===== */
-// ⚡ CARGA RÁPIDA INICIAL
 db.collection("productos")
   .orderBy("precio", "asc")
   .onSnapshot(snapshot => {
-
     if (!snapshot) return;
-
-    productos = snapshot.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-
+    productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     document.getElementById("loading").style.display = "none";
-
     generarFiltros();
     renderProductos();
-
   }, error => {
     console.error("Error Firebase:", error);
-
     const loading = document.getElementById("loading");
     loading.innerText = "Error de conexión...";
     loading.style.color = "red";
-
-    // 🔁 reintento automático REAL
-    setTimeout(() => {
-      location.reload();
-    }, 3000);
+    setTimeout(() => location.reload(), 3000);
   });
 
-/* ===== FILTROS ===== */
 function generarFiltros() {
   const cont = document.getElementById("filtros");
-
   cont.innerHTML = "<strong>Filtrar por puntos:</strong>";
-
   [...new Set(productos.map(p => p.precio))]
     .sort((a, b) => a - b)
     .forEach(p => {
@@ -598,26 +473,20 @@ function generarFiltros() {
     });
 }
 
-/* ===== RENDER ===== */
 function renderProductos() {
-
   const texto = buscador.value.toLowerCase();
-  const precios = [...document.querySelectorAll("#filtros input:checked")]
-    .map(c => c.value);
-
+  const precios = [...document.querySelectorAll("#filtros input:checked")].map(c => c.value);
   let html = "";
 
   productos.forEach(p => {
     if (!p.desc?.toLowerCase().includes(texto)) return;
     if (precios.length && !precios.includes(String(p.precio))) return;
-
     html += `
       <div class="card">
         <img src="${p.img}" loading="lazy" width="200" height="150" onclick="abrirImagen('${p.img}')">
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div class="stock">Disponibles: ${p.disp}</div>
-
         ${esAdmin ? `
         <div class="actions">
           <button class="edit" onclick="editarProducto('${p.id}')">Editar</button>
@@ -629,55 +498,44 @@ function renderProductos() {
   listaProductos.innerHTML = html;
 }
 
-/* ===== CRUD ===== */
 function guardarProducto() {
   if (!descripcion.value || !precio.value || !disponible.value) {
     alert("Completa todos los campos");
     return;
   }
-
   const data = {
     desc: descripcion.value,
     disp: Number(disponible.value),
     precio: Number(precio.value),
     img: imagen.value || "https://via.placeholder.com/300"
   };
-
   if (editIndex.value) {
     db.collection("productos").doc(editIndex.value).update(data);
   } else {
     db.collection("productos").add(data);
   }
-
   formulario.style.display = "none";
   editIndex.value = "";
 }
 
-/* ⚡ EDICIÓN INSTANTÁNEA */
 function editarProducto(id) {
   if (!esAdmin) return alert("No tienes permiso");
-
   const p = productos.find(prod => prod.id === id);
-
   if (!p) return alert("Producto no encontrado");
-
-  editIndex.value = id;
+  editIndex.value  = id;
   descripcion.value = p.desc;
-  disponible.value = p.disp;
-  precio.value = p.precio;
-  imagen.value = p.img;
-
+  disponible.value  = p.disp;
+  precio.value      = p.precio;
+  imagen.value      = p.img;
   formulario.style.display = "block";
 }
 
-/* ===== DELETE ===== */
 function eliminarProducto(id) {
   if (confirm("¿Eliminar producto?")) {
     db.collection("productos").doc(id).delete();
   }
 }
 
-/* ===== IMAGEN ===== */
 function abrirImagen(src) {
   document.getElementById("imagenGrande").src = src;
   document.getElementById("modalImagen").style.display = "flex";
@@ -687,89 +545,47 @@ function cerrarImagen() {
   document.getElementById("modalImagen").style.display = "none";
 }
 
-/* ===== NUEVO ===== */
 function nuevoProducto() {
   editIndex.value = "";
   descripcion.value = "";
-  disponible.value = "";
-  precio.value = "";
-  imagen.value = "";
-
+  disponible.value  = "";
+  precio.value      = "";
+  imagen.value      = "";
   formulario.style.display = "block";
 }
 
-/* ===== LOGOUT ===== */
 function cerrarSesion() {
   const origen = sessionStorage.getItem("loginOrigen") || "login.html";
   sessionStorage.clear();
   window.location.href = origen;
 }
-  function exportarExcel() {
- if (!esAdmin) {
-    alert("No tienes permiso para exportar");
-    return;
-  }
-  if (!productos.length) {
-    alert("No hay datos para exportar");
-    return;
-  }
 
-  // Convertir datos
-  const datos = productos.map(p => ({
-    "Premio": p.desc,
-    "Disponibles": p.disp
-  }));
-
-  // Crear hoja
-  const hoja = XLSX.utils.json_to_sheet(datos);
-
-  // Crear libro
+function exportarExcel() {
+  if (!esAdmin) { alert("No tienes permiso para exportar"); return; }
+  if (!productos.length) { alert("No hay datos para exportar"); return; }
+  const datos = productos.map(p => ({ "Premio": p.desc, "Disponibles": p.disp }));
+  const hoja  = XLSX.utils.json_to_sheet(datos);
   const libro = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(libro, hoja, "Premios");
-
-  // Descargar archivo
   XLSX.writeFile(libro, "Premios_IP.xlsx");
 }
 
 function exportarIngresosExcel() {
-
-  if (!esAdmin) {
-    alert("No tienes permiso");
-    return;
-  }
-
-  if (!ingresos.length) {
-    alert("No hay registros");
-    return;
-  }
-
+  if (!esAdmin) { alert("No tienes permiso"); return; }
+  if (!ingresos.length) { alert("No hay registros"); return; }
   const datos = ingresos.map(i => ({
     "Empleado ID": i.empleadoId,
     "Nombre": i.nombre,
-    "Fecha": i.fecha?.toDate()
+    "Fecha": i.fecha && typeof i.fecha.toDate === "function"
       ? i.fecha.toDate().toLocaleString()
       : new Date(i.fecha).toLocaleString()
   }));
-
-  const hoja = XLSX.utils.json_to_sheet(datos);
+  const hoja  = XLSX.utils.json_to_sheet(datos);
   const libro = XLSX.utils.book_new();
-
   XLSX.utils.book_append_sheet(libro, hoja, "Ingresos");
-
   XLSX.writeFile(libro, "Ingresos_IP.xlsx");
 }
-
-  
 </script>
-
-
-  
-<!-- MODAL IMAGEN -->
-<div id="modalImagen" onclick="cerrarImagen()">
-  <img id="imagenGrande">
-
-  
-</div>
 
 </body>
 </html>
