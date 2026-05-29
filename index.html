@@ -700,8 +700,9 @@ function nuevoProducto() {
 
 /* ===== LOGOUT ===== */
 function cerrarSesion() {
+  const origen = sessionStorage.getItem("loginOrigen") || "login.html";
   sessionStorage.clear();
-  window.location.href = "login.html";
+  window.location.href = origen;
 }
   function exportarExcel() {
  if (!esAdmin) {
