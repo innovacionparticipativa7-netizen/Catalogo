@@ -168,7 +168,8 @@ function iniciarSesion(codigo) {
       return db.collection("ingresos").add({
         empleadoId: codigo,
         nombre: data.nombre,
-        fecha: new Date()
+        fecha: new Date(),
+        origen: "ATM"
       }).then(() => {
         sessionStorage.setItem("usuario", JSON.stringify({
           id: doc.id,
