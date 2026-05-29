@@ -746,7 +746,7 @@ function exportarIngresosExcel() {
   const datos = ingresos.map(i => ({
     "Empleado ID": i.empleadoId,
     "Nombre": i.nombre,
-    "Fecha": i.fecha?.toDate
+    "Fecha": i.fecha?.toDate()
       ? i.fecha.toDate().toLocaleString()
       : new Date(i.fecha).toLocaleString()
   }));
