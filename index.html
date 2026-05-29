@@ -748,8 +748,7 @@ function exportarIngresosExcel() {
     "Nombre": i.nombre,
     "Fecha": i.fecha?.toDate
       ? i.fecha.toDate().toLocaleString()
-      : new Date(i.fecha).toLocaleString(),
-    "Origen": i.origen || "manual"
+      : new Date(i.fecha).toLocaleString()
   }));
 
   const hoja = XLSX.utils.json_to_sheet(datos);
