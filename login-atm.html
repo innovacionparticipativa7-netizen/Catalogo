@@ -176,6 +176,7 @@ function iniciarSesion(codigo) {
           puntos: data.puntosActuales,
           rol: data.rol || "usuario"
         }));
+        sessionStorage.setItem("loginOrigen", "login-atm.html");
         window.location.href = "index.html";
       });
     })
