@@ -188,32 +188,45 @@ function iniciarSesion(codigo) {
 
   setTimeout(() => bloqueado = false, 2000);
 
-  codigo = codigo.trim().replace(/\D/g, '').replace(/^0+/, '');
+  codigo = normalizarCodigo(codigo);
 
   if (!codigo) {
     alert("Código inválido");
     return;
   }
 
-  console.log("Código final:", codigo);
+  // PRIMERO BUSCAR OFFLINE
+  const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
 
+  const usuarioLocal = usuarios.find(u =>
+    normalizarCodigo(u.control) === codigo ||
+    normalizarCodigo(u.controlNormalizado) === codigo
+  );
+
+  if (usuarioLocal) {
+    completarLogin(usuarioLocal.id, codigo, usuarioLocal, "offline-local");
+    return;
+  }
+
+  // SI NO LO ENCUENTRA LOCAL, BUSCA EN FIREBASE
   db.collection("usuarios")
     .where("control", "==", codigo)
     .limit(1)
     .get()
     .then(snapshot => {
-      if (!snapshot.empty) {
-        const doc = snapshot.docs[0];
-        const data = doc.data();
-
-        completarLogin(doc.id, codigo, data, "online");
-      } else {
-        buscarUsuarioOffline(codigo);
+      if (snapshot.empty) {
+        alert("Empleado no registrado");
+        return;
       }
+
+      const doc = snapshot.docs[0];
+      const data = doc.data();
+
+      completarLogin(doc.id, codigo, data, "online");
     })
     .catch(error => {
-      console.warn("Error online, buscando offline:", error);
-      buscarUsuarioOffline(codigo);
+      console.error("Error login:", error);
+      alert("No hay internet y el empleado no está guardado localmente");
     });
 }
 
