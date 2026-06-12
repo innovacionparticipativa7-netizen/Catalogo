@@ -143,29 +143,38 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
-  function guardarUsuariosOffline() {
-  if (!navigator.onLine) {
-    console.log("Sin internet, no se actualizó usuariosOffline");
-    return;
-  }
+ function normalizarCodigo(valor) {
+  return String(valor || "").trim().replace(/\D/g, "").replace(/^0+/, "");
+}
 
-  db.collection("usuarios").get()
-    .then(snapshot => {
-      const usuarios = snapshot.docs.map(doc => ({
+async function guardarUsuariosOffline() {
+  try {
+    if (!navigator.onLine) {
+      console.log("Sin internet, no se actualizó usuariosOffline");
+      return;
+    }
+
+    const snapshot = await db.collection("usuarios").get();
+
+    const usuarios = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
         id: doc.id,
-        ...doc.data()
-      }));
-
-      localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
-      localStorage.setItem("usuariosOfflineFecha", new Date().toLocaleString());
-
-      console.log("Usuarios guardados offline:", usuarios.length);
-      alert("Usuarios guardados offline: " + usuarios.length);
-    })
-    .catch(error => {
-      console.error("Error guardando usuarios offline:", error);
-      alert("No se pudieron guardar usuarios offline");
+        ...data,
+        controlNormalizado: normalizarCodigo(data.control)
+      };
     });
+
+    localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
+    localStorage.setItem("usuariosOfflineFecha", new Date().toLocaleString());
+
+    alert("Usuarios guardados offline: " + usuarios.length);
+    console.log("Usuarios guardados offline:", usuarios);
+
+  } catch (error) {
+    console.error("Error guardando usuarios offline:", error);
+    alert("Error guardando usuarios offline: " + error.message);
+  }
 }
 
 guardarUsuariosOffline();
@@ -291,14 +300,20 @@ function cerrarCamara() {
 /* ===== GUARDAR USUARIOS LOCALMENTE ===== */
 
 function buscarUsuarioOffline(codigo) {
+  codigo = normalizarCodigo(codigo);
+
   const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
 
+  console.log("Buscando offline código:", codigo);
+  console.log("Usuarios offline disponibles:", usuarios.length);
+
   const usuario = usuarios.find(u =>
-    String(u.control).replace(/\D/g, '').replace(/^0+/, '') === codigo
+    normalizarCodigo(u.control) === codigo ||
+    normalizarCodigo(u.controlNormalizado) === codigo
   );
 
   if (!usuario) {
-    alert("Empleado no registrado o no guardado offline");
+    alert("Empleado no guardado offline. Usuarios cargados: " + usuarios.length);
     return;
   }
 
