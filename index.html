@@ -11,7 +11,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="icon" href="Favicon.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
 <style>
 * { box-sizing: border-box; }
 
@@ -587,6 +588,16 @@ function exportarIngresosExcel() {
 }
 </script>
 
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("PWA activa"))
+    .catch(err => console.error("Error PWA:", err));
+}
+</script>
+
+
+  
 </body>
 </html>
 
