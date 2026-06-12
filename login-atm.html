@@ -186,7 +186,94 @@ function iniciarSesion(codigo) {
       alert("Error al iniciar sesión");
     });
 }
+function normalizarCodigo(valor) {
+  return String(valor || "").trim().replace(/\D/g, "").replace(/^0+/, "");
+}
 
+function guardarIngresoPendiente(ingreso) {
+  const pendientes = JSON.parse(localStorage.getItem("ingresosPendientes") || "[]");
+  pendientes.push(ingreso);
+  localStorage.setItem("ingresosPendientes", JSON.stringify(pendientes));
+}
+
+function completarLogin(docId, codigo, data, modo) {
+  const ingreso = {
+    empleadoId: codigo,
+    nombre: data.nombre,
+    fecha: new Date().toISOString(),
+    origen: "ATM",
+    modo: modo
+  };
+
+  if (navigator.onLine) {
+    db.collection("ingresos").add({
+      empleadoId: codigo,
+      nombre: data.nombre,
+      fecha: new Date(),
+      origen: "ATM",
+      modo: modo
+    }).catch(() => {
+      guardarIngresoPendiente(ingreso);
+    });
+  } else {
+    guardarIngresoPendiente(ingreso);
+  }
+
+  sessionStorage.setItem("usuario", JSON.stringify({
+    id: docId,
+    nombre: data.nombre,
+    puntos: data.puntosActuales,
+    rol: data.rol || "usuario"
+  }));
+
+  sessionStorage.setItem("loginOrigen", window.location.href);
+  window.location.href = "index.html";
+}
+
+function iniciarSesion(codigo) {
+  if (bloqueado) return;
+  bloqueado = true;
+  setTimeout(() => bloqueado = false, 2000);
+
+  codigo = normalizarCodigo(codigo);
+  if (!codigo) return;
+
+  flashPantalla();
+
+  // 1. Buscar primero en usuarios guardados offline
+  const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
+
+  const usuarioLocal = usuarios.find(u =>
+    normalizarCodigo(u.control) === codigo ||
+    normalizarCodigo(u.controlNormalizado) === codigo
+  );
+
+  if (usuarioLocal) {
+    completarLogin(usuarioLocal.id || usuarioLocal.control, codigo, usuarioLocal, "offline-local");
+    return;
+  }
+
+  // 2. Si no está local, intentar Firebase
+  db.collection("usuarios")
+    .where("control", "==", codigo)
+    .limit(1)
+    .get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        alert("Empleado no registrado en local ni Firebase");
+        return;
+      }
+
+      const doc = snapshot.docs[0];
+      const data = doc.data();
+
+      completarLogin(doc.id, codigo, data, "online");
+    })
+    .catch(error => {
+      console.error("Error login:", error);
+      alert("Sin internet y empleado no encontrado localmente");
+    });
+}
 /* Lector USB / escáner automático */
 let buffer = "";
 let timeout = null;
