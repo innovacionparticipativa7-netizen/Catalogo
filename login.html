@@ -143,6 +143,32 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+  function guardarUsuariosOffline() {
+  if (!navigator.onLine) {
+    console.log("Sin internet, no se actualizó usuariosOffline");
+    return;
+  }
+
+  db.collection("usuarios").get()
+    .then(snapshot => {
+      const usuarios = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
+      localStorage.setItem("usuariosOfflineFecha", new Date().toLocaleString());
+
+      console.log("Usuarios guardados offline:", usuarios.length);
+      alert("Usuarios guardados offline: " + usuarios.length);
+    })
+    .catch(error => {
+      console.error("Error guardando usuarios offline:", error);
+      alert("No se pudieron guardar usuarios offline");
+    });
+}
+
+guardarUsuariosOffline();
 let bloqueado = false;
 
   
@@ -263,22 +289,6 @@ function cerrarCamara() {
 }
 
 /* ===== GUARDAR USUARIOS LOCALMENTE ===== */
-function guardarUsuariosOffline() {
-  db.collection("usuarios").get().then(snapshot => {
-    const usuarios = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
-    console.log("Usuarios guardados offline:", usuarios.length);
-  }).catch(error => {
-    console.warn("No se pudieron guardar usuarios offline:", error);
-  });
-}
-
-guardarUsuariosOffline();
-
 
 function buscarUsuarioOffline(codigo) {
   const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
