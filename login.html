@@ -168,7 +168,6 @@ async function guardarUsuariosOffline() {
     localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
     localStorage.setItem("usuariosOfflineFecha", new Date().toLocaleString());
 
-    alert("Usuarios guardados offline: " + usuarios.length);
     console.log("Usuarios guardados offline:", usuarios);
 
   } catch (error) {
