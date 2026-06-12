@@ -1,0 +1,15 @@
+{
+  "name": "Catálogo IP",
+  "short_name": "Catalogo IP",
+  "start_url": "login.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "Favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
