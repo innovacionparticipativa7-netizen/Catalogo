@@ -167,42 +167,20 @@ function iniciarSesion(codigo) {
     .limit(1)
     .get()
     .then(snapshot => {
+      if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        const data = doc.data();
 
-      if (snapshot.empty) {
-        alert("Empleado no registrado");
-        return;
+        completarLogin(doc.id, codigo, data, "online");
+      } else {
+        buscarUsuarioOffline(codigo);
       }
-
-      const doc = snapshot.docs[0];
-      const data = doc.data();
-
-      // 📝 REGISTRAR INGRESO (AQUÍ ESTABA EL ERROR)
-      return db.collection("ingresos").add({
-        empleadoId: codigo,
-        nombre: data.nombre,
-        fecha: new Date(),
-        origen: "manual"
-        
-      }).then(() => {
-
-        console.log("Ingreso registrado");
-
-        sessionStorage.setItem("usuario", JSON.stringify({
-          id: doc.id,
-          nombre: data.nombre,
-          puntos: data.puntosActuales,
-          rol: data.rol || "usuario"
-        }));
-        sessionStorage.setItem("loginOrigen", window.location.href);
-        window.location.href = "index.html";
-      });
     })
     .catch(error => {
-      console.error("Error login:", error);
-      alert("Error al iniciar sesión");
+      console.warn("Error online, buscando offline:", error);
+      buscarUsuarioOffline(codigo);
     });
 }
-
 
 
 
@@ -213,7 +191,6 @@ function loginManual() {
   iniciarSesion(codigo);
 }
 
-/* ===== LECTOR USB ===== */
 /* ===== LECTOR AUTOMÁTICO GLOBAL ===== */
 let buffer = "";
 let timeout = null;
@@ -283,6 +260,66 @@ Quagga.onDetected(result => {
 function cerrarCamara() {
   if (window.Quagga) Quagga.stop();
   document.getElementById("cameraBox").style.display = "none";
+}
+
+/* ===== GUARDAR USUARIOS LOCALMENTE ===== */
+function guardarUsuariosOffline() {
+  db.collection("usuarios").get().then(snapshot => {
+    const usuarios = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
+    console.log("Usuarios guardados offline:", usuarios.length);
+  }).catch(error => {
+    console.warn("No se pudieron guardar usuarios offline:", error);
+  });
+}
+
+guardarUsuariosOffline();
+
+
+function buscarUsuarioOffline(codigo) {
+  const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
+
+  const usuario = usuarios.find(u =>
+    String(u.control).replace(/\D/g, '').replace(/^0+/, '') === codigo
+  );
+
+  if (!usuario) {
+    alert("Empleado no registrado o no guardado offline");
+    return;
+  }
+
+  completarLogin(usuario.id, codigo, usuario, "offline");
+}
+
+function completarLogin(docId, codigo, data, modo) {
+  const ingreso = {
+    empleadoId: codigo,
+    nombre: data.nombre,
+    fecha: new Date(),
+    origen: modo
+  };
+
+  if (navigator.onLine) {
+    db.collection("ingresos").add(ingreso);
+  } else {
+    const pendientes = JSON.parse(localStorage.getItem("ingresosPendientes") || "[]");
+    pendientes.push(ingreso);
+    localStorage.setItem("ingresosPendientes", JSON.stringify(pendientes));
+  }
+
+  sessionStorage.setItem("usuario", JSON.stringify({
+    id: docId,
+    nombre: data.nombre,
+    puntos: data.puntosActuales,
+    rol: data.rol || "usuario"
+  }));
+
+  sessionStorage.setItem("loginOrigen", window.location.href);
+  window.location.href = "index.html";
 }
   
 </script>
