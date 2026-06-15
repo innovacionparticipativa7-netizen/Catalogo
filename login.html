@@ -12,6 +12,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="Favicon.png" type="image/png">
 <link rel="manifest" href="manifest.json">
+  <script>
+const manifestData = {
+  "name": "Tienda IP - Premios",
+  "short_name": "IP Premios",
+  "start_url": "./login.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    { "src": "Favicon.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type: "application/json"});
+const url = URL.createObjectURL(blob);
+document.querySelector('link[rel="manifest"]').href = url;
+</script>
 <meta name="theme-color" content="#2563eb">
 
   
