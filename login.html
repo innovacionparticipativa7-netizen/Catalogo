@@ -12,7 +12,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="Favicon.png" type="image/png">
 <link rel="manifest" href="manifest.json">
-  <script>
+<meta name="theme-color" content="#2563eb">
+
+<!-- MANIFEST INLINE (soluciona el 404) -->
+<script>
 const manifestData = {
   "name": "Tienda IP - Premios",
   "short_name": "IP Premios",
@@ -29,9 +32,7 @@ const blob = new Blob([JSON.stringify(manifestData)], {type: "application/json"}
 const url = URL.createObjectURL(blob);
 document.querySelector('link[rel="manifest"]').href = url;
 </script>
-<meta name="theme-color" content="#2563eb">
 
-  
 <style>
 * { box-sizing: border-box; }
 
@@ -45,7 +46,6 @@ body {
   margin: 0;
 }
 
-/* TARJETA */
 .login-card {
   background: white;
   padding: 40px;
@@ -56,13 +56,11 @@ body {
   text-align: center;
 }
 
-/* LOGO */
 .login-card img {
   width: 90px;
   margin-bottom: 15px;
 }
 
-/* TITULO */
 .login-card h2 {
   margin: 10px 0 5px;
   font-size: 26px;
@@ -76,7 +74,6 @@ body {
   font-size: 14px;
 }
 
-/* INPUT */
 .login-card input {
   width: 100%;
   padding: 14px;
@@ -91,7 +88,6 @@ body {
   border-color: #2563eb;
 }
 
-/* BOTONES */
 .btn {
   width: 100%;
   padding: 14px;
@@ -103,21 +99,10 @@ body {
   margin-bottom: 12px;
 }
 
-.btn-primary {
-  background: #2563eb;
-  color: white;
-}
+.btn-primary { background: #2563eb; color: white; }
+.btn-secondary { background: #111827; color: white; }
+.btn:hover { opacity: 0.9; }
 
-.btn-secondary {
-  background: #111827;
-  color: white;
-}
-
-.btn:hover {
-  opacity: 0.9;
-}
-
-/* TEXTO */
 .info {
   font-size: 13px;
   color: #475569;
@@ -129,26 +114,18 @@ body {
 <body>
 
 <div class="login-card">
-
   <img src="logo.png" alt="IP">
-
   <h2>Ingreso de Empleado</h2>
   <p>Escanea tu código o ingresa tu número de empleado</p>
-
   <input id="empleadoInput" placeholder="Número de empleado">
-
   <button class="btn btn-primary" onclick="loginManual()">✍️ Ingresar</button>
 
-
-<div id="cameraBox" style="display:none; margin-top:20px;">
-  <div id="barcode-reader" style="width:100%; height:260px;"></div>
-  <button class="btn btn-secondary" onclick="cerrarCamara()">❌ Cancelar cámara</button>
-</div>
-
-  <div class="info">
-    El lector se activa automaticamene
+  <div id="cameraBox" style="display:none; margin-top:20px;">
+    <div id="barcode-reader" style="width:100%; height:260px;"></div>
+    <button class="btn btn-secondary" onclick="cerrarCamara()">❌ Cancelar cámara</button>
   </div>
 
+  <div class="info">El lector se activa automáticamente</div>
 </div>
 
 <script>
@@ -160,59 +137,39 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
- function normalizarCodigo(valor) {
+
+function normalizarCodigo(valor) {
   return String(valor || "").trim().replace(/\D/g, "").replace(/^0+/, "");
 }
 
 async function guardarUsuariosOffline() {
   try {
-    if (!navigator.onLine) {
-      console.log("Sin internet, no se actualizó usuariosOffline");
-      return;
-    }
-
+    if (!navigator.onLine) return;
     const snapshot = await db.collection("usuarios").get();
-
     const usuarios = snapshot.docs.map(doc => {
       const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        controlNormalizado: normalizarCodigo(data.control)
-      };
+      return { id: doc.id, ...data, controlNormalizado: normalizarCodigo(data.control) };
     });
-
     localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
     localStorage.setItem("usuariosOfflineFecha", new Date().toLocaleString());
-
-
   } catch (error) {
     console.error("Error guardando usuarios offline:", error);
-    alert("Error guardando usuarios offline: " + error.message);
   }
 }
 
 guardarUsuariosOffline();
+
 let bloqueado = false;
 
-  
-  /* ===== LOGIN ===== */
 function iniciarSesion(codigo) {
   if (bloqueado) return;
   bloqueado = true;
-
   setTimeout(() => bloqueado = false, 2000);
 
   codigo = normalizarCodigo(codigo);
+  if (!codigo) { alert("Código inválido"); return; }
 
-  if (!codigo) {
-    alert("Código inválido");
-    return;
-  }
-
-  // PRIMERO BUSCAR OFFLINE
   const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
-
   const usuarioLocal = usuarios.find(u =>
     normalizarCodigo(u.control) === codigo ||
     normalizarCodigo(u.controlNormalizado) === codigo
@@ -223,94 +180,36 @@ function iniciarSesion(codigo) {
     return;
   }
 
-  // SI NO LO ENCUENTRA LOCAL, BUSCA EN FIREBASE
-  db.collection("usuarios")
-    .where("control", "==", codigo)
-    .limit(1)
-    .get()
+  db.collection("usuarios").where("control", "==", codigo).limit(1).get()
     .then(snapshot => {
-      if (snapshot.empty) {
-        alert("Empleado no registrado");
-        return;
-      }
-
+      if (snapshot.empty) { alert("Empleado no registrado"); return; }
       const doc = snapshot.docs[0];
-      const data = doc.data();
-
-      completarLogin(doc.id, codigo, data, "online");
+      completarLogin(doc.id, codigo, doc.data(), "online");
     })
-    .catch(error => {
-      console.error("Error login:", error);
-      alert("No hay internet y el empleado no está guardado localmente");
-    });
+    .catch(() => alert("No hay internet y el empleado no está guardado localmente"));
 }
 
-
-
-  
 function loginManual() {
   const codigo = document.getElementById("empleadoInput").value.trim();
   if (!codigo) return alert("Ingresa tu número");
   iniciarSesion(codigo);
 }
 
-/* ===== LECTOR AUTOMÁTICO GLOBAL ===== */
 let buffer = "";
 let timeout = null;
 
 document.addEventListener("keydown", (e) => {
-
-  // Ignorar si el usuario está escribiendo manualmente
   if (document.activeElement.id === "empleadoInput") return;
-
-  // Solo aceptar números (la mayoría de lectores mandan números)
   if (!/^[0-9]$/.test(e.key) && e.key !== "Enter") return;
-
-  // Cuando presiona ENTER → enviar código
   if (e.key === "Enter") {
-
-    if (buffer.length >= 4) {
-      iniciarSesion(buffer);
-    }
-
+    if (buffer.length >= 4) iniciarSesion(buffer);
     buffer = "";
     return;
   }
-
-  // Agregar al buffer
   buffer += e.key;
-
-  // Reset automático si tarda mucho (evita capturar teclado humano)
   clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    buffer = "";
-  }, 80); // más rápido = más preciso para lector
+  timeout = setTimeout(() => { buffer = ""; }, 80);
 });
-
-/* ===== CÁMARA ===== */
-function usarCamara() {
-  document.getElementById("cameraBox").style.display = "block";
-
-  Quagga.init({
-    inputStream: {
-      name: "Live",
-      type: "LiveStream",
-      target: document.querySelector("#barcode-reader"),
-      constraints: { facingMode: "environment" }
-    },
-    decoder: {
-      readers: ["code_128_reader"]
-    }
-  }, err => {
-    if (err) {
-      alert("No se pudo abrir la cámara");
-      return;
-    }
-    Quagga.start();
-  });
-}
-
-let yaDetectado = false;
 
 Quagga.onDetected(result => {
   const codigo = result.codeResult.code;
@@ -319,45 +218,21 @@ Quagga.onDetected(result => {
   iniciarSesion(codigo);
 });
 
-
 function cerrarCamara() {
   if (window.Quagga) Quagga.stop();
   document.getElementById("cameraBox").style.display = "none";
-}
-
-/* ===== GUARDAR USUARIOS LOCALMENTE ===== */
-
-function buscarUsuarioOffline(codigo) {
-  codigo = normalizarCodigo(codigo);
-
-  const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
-
-  console.log("Buscando offline código:", codigo);
-  console.log("Usuarios offline disponibles:", usuarios.length);
-
-  const usuario = usuarios.find(u =>
-    normalizarCodigo(u.control) === codigo ||
-    normalizarCodigo(u.controlNormalizado) === codigo
-  );
-
-  if (!usuario) {
-    alert("Empleado no guardado offline. Usuarios cargados: " + usuarios.length);
-    return;
-  }
-
-  completarLogin(usuario.id, codigo, usuario, "offline");
 }
 
 function completarLogin(docId, codigo, data, modo) {
   const ingreso = {
     empleadoId: codigo,
     nombre: data.nombre,
-    fecha: new Date(),
+    fecha: new Date().toISOString(),
     origen: modo
   };
 
   if (navigator.onLine) {
-    db.collection("ingresos").add(ingreso);
+    db.collection("ingresos").add({ ...ingreso, fecha: new Date() });
   } else {
     const pendientes = JSON.parse(localStorage.getItem("ingresosPendientes") || "[]");
     pendientes.push(ingreso);
@@ -374,20 +249,13 @@ function completarLogin(docId, codigo, data, modo) {
   sessionStorage.setItem("loginOrigen", window.location.href);
   window.location.href = "index.html";
 }
-  
 </script>
 
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js")
-    .then(() => console.log("PWA activa"))
-    .catch(err => console.error("Error PWA:", err));
-}
+<!-- SYNC: siempre al final, después de Firebase -->
 <script src="sync.js"></script>
 
 </body>
 </html>
-
 
 
 
