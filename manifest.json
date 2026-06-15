@@ -1,0 +1,23 @@
+{
+  "name": "Tienda IP - Premios",
+  "short_name": "IP Premios",
+  "start_url": "/Catalogo/login.html",
+  "scope": "/Catalogo/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/Catalogo/Favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/Catalogo/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
