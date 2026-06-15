@@ -9,11 +9,12 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="Favicon.png" type="image/png">
-  <link rel="manifest" href="/Catalogo/manifest.json">
+<link rel="manifest" href="/Catalogo/manifest.json">
 
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#2563eb">
 
 <style>
 * { box-sizing: border-box; }
@@ -62,7 +63,6 @@ body {
   border-radius: 16px;
   padding: 40px 20px;
   margin-bottom: 30px;
-  position: relative;
 }
 
 .scan-icon {
@@ -147,50 +147,6 @@ function flashPantalla() {
   setTimeout(() => f.style.opacity = "0", 150);
 }
 
-function iniciarSesion(codigo) {
-  if (bloqueado) return;
-  bloqueado = true;
-  setTimeout(() => bloqueado = false, 2000);
-
-  codigo = codigo.trim().replace(/\D/g, '').replace(/^0+/, '');
-  if (!codigo) return;
-
-  flashPantalla();
-
-  db.collection("usuarios")
-    .where("control", "==", codigo)
-    .limit(1)
-    .get()
-    .then(snapshot => {
-      if (snapshot.empty) {
-        alert("Empleado no registrado");
-        return;
-      }
-
-      const doc = snapshot.docs[0];
-      const data = doc.data();
-
-      return db.collection("ingresos").add({
-        empleadoId: codigo,
-        nombre: data.nombre,
-        fecha: new Date(),
-        origen: "ATM"
-      }).then(() => {
-        sessionStorage.setItem("usuario", JSON.stringify({
-          id: doc.id,
-          nombre: data.nombre,
-          puntos: data.puntosActuales,
-          rol: data.rol || "usuario"
-        }));
-        sessionStorage.setItem("loginOrigen", window.location.href);
-        window.location.href = "index.html";
-      });
-    })
-    .catch(error => {
-      console.error("Error login:", error);
-      alert("Error al iniciar sesión");
-    });
-}
 function normalizarCodigo(valor) {
   return String(valor || "").trim().replace(/\D/g, "").replace(/^0+/, "");
 }
@@ -217,9 +173,7 @@ function completarLogin(docId, codigo, data, modo) {
       fecha: new Date(),
       origen: "ATM",
       modo: modo
-    }).catch(() => {
-      guardarIngresoPendiente(ingreso);
-    });
+    }).catch(() => guardarIngresoPendiente(ingreso));
   } else {
     guardarIngresoPendiente(ingreso);
   }
@@ -245,9 +199,7 @@ function iniciarSesion(codigo) {
 
   flashPantalla();
 
-  // 1. Buscar primero en usuarios guardados offline
   const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
-
   const usuarioLocal = usuarios.find(u =>
     normalizarCodigo(u.control) === codigo ||
     normalizarCodigo(u.controlNormalizado) === codigo
@@ -258,7 +210,6 @@ function iniciarSesion(codigo) {
     return;
   }
 
-  // 2. Si no está local, intentar Firebase
   db.collection("usuarios")
     .where("control", "==", codigo)
     .limit(1)
@@ -268,34 +219,29 @@ function iniciarSesion(codigo) {
         alert("Empleado no registrado en local ni Firebase");
         return;
       }
-
       const doc = snapshot.docs[0];
-      const data = doc.data();
-
-      completarLogin(doc.id, codigo, data, "online");
+      completarLogin(doc.id, codigo, doc.data(), "online");
     })
-    .catch(error => {
-      console.error("Error login:", error);
-      alert("Sin internet y empleado no encontrado localmente");
-    });
+    .catch(() => alert("Sin internet y empleado no encontrado localmente"));
 }
-/* Lector USB / escáner automático */
+
 let buffer = "";
 let timeout = null;
 
 document.addEventListener("keydown", (e) => {
   if (!/^[0-9]$/.test(e.key) && e.key !== "Enter") return;
-
   if (e.key === "Enter") {
     if (buffer.length >= 4) iniciarSesion(buffer);
     buffer = "";
     return;
   }
-
   buffer += e.key;
   clearTimeout(timeout);
   timeout = setTimeout(() => { buffer = ""; }, 80);
 });
+</script>
+
+<!-- SYNC: siempre al final -->
 <script src="sync.js"></script>
 
 </body>
