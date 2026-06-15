@@ -11,11 +11,8 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="icon" href="Favicon.png" type="image/png">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
-
-<!-- MANIFEST INLINE (soluciona el 404) -->
 <script>
+// Manifest inline — sin archivo físico
 const manifestData = {
   "name": "Tienda IP - Premios",
   "short_name": "IP Premios",
@@ -29,9 +26,13 @@ const manifestData = {
   ]
 };
 const blob = new Blob([JSON.stringify(manifestData)], {type: "application/json"});
-const url = URL.createObjectURL(blob);
-document.querySelector('link[rel="manifest"]').href = url;
+const manifestURL = URL.createObjectURL(blob);
+const linkEl = document.createElement("link");
+linkEl.rel = "manifest";
+linkEl.href = manifestURL;
+document.head.appendChild(linkEl);
 </script>
+
 
 <style>
 * { box-sizing: border-box; }
