@@ -355,6 +355,14 @@ body {
 <button onclick="verEliminados()" class="save admin-only">
 🗑️ Premios Eliminados
 </button>
+<button onclick="window.location.href='historial.html'" class="save admin-only">
+📜 Historial
+</button>
+
+<button onclick="window.location.href='eliminados.html'" class="save admin-only">
+🗑️ Eliminados
+</button>
+  
 
 <h1 style="text-align:center;">
   <img src="logo.png" alt="Logo IP" style="width:80px; vertical-align:middle; margin-right:8px;">
@@ -452,6 +460,8 @@ const imagen         = document.getElementById("imagen");
 let productos = [];
 
 db.collection("productos")
+  .where("eliminado", "!=", true)
+  .orderBy("eliminado")
   .orderBy("precio", "asc")
   .onSnapshot(snapshot => {
     if (!snapshot) return;
@@ -699,8 +709,64 @@ async function exportarMovimientosExcel() {
  );
 
 }
+async function verEliminados() {
 
+  if (!esAdmin) {
+    alert("No tienes permiso");
+    return;
+  }
 
+  const snapshot = await db.collection("productos")
+    .where("eliminado", "==", true)
+    .get();
+
+  if (snapshot.empty) {
+    alert("No hay premios eliminados");
+    return;
+  }
+
+  let mensaje = "🗑️ PREMIOS ELIMINADOS\n\n";
+
+  snapshot.forEach(doc => {
+
+    const p = doc.data();
+
+    let fecha = "";
+
+    if (p.fechaEliminacion && p.fechaEliminacion.toDate) {
+      fecha = p.fechaEliminacion.toDate().toLocaleString();
+    }
+
+    mensaje +=
+      "Premio: " + p.desc + "\n" +
+      "Stock: " + p.disp + "\n" +
+      "Eliminado por: " + (p.eliminadoPor || "N/A") + "\n" +
+      "Fecha: " + fecha + "\n\n";
+
+  });
+
+  alert(mensaje);
+
+}
+function restaurarProducto(id){
+
+ db.collection("productos")
+ .doc(id)
+ .update({
+   eliminado:false,
+   eliminadoPor:null,
+   fechaEliminacion:null
+ });
+
+ registrarMovimiento(
+   "RESTAURAR",
+   producto.desc,
+   id,
+   producto.disp,
+   producto.disp
+ );
+
+}
   
 </script>
 
