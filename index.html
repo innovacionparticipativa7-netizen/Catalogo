@@ -352,8 +352,8 @@ body {
 📜 Historial de Movimientos
 </button>
 
-<button onclick="verEliminados()" class="save admin-only">
-🗑️ Premios Eliminados
+<button onclick="exportarEliminadosExcel()" class="save admin-only">
+🗑️ Excel Premios Eliminados
 </button>
   
 
@@ -456,16 +456,16 @@ db.collection("productos")
   .orderBy("precio", "asc")
   .onSnapshot(snapshot => {
     if (!snapshot) return;
-    productos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    productos = snapshot.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(p => p.eliminado !== true);
+
     document.getElementById("loading").style.display = "none";
     generarFiltros();
     renderProductos();
   }, error => {
-    console.error("Error Firebase:", error);
-    const loading = document.getElementById("loading");
-    loading.innerText = "Error de conexión...";
-    loading.style.color = "red";
-    setTimeout(() => location.reload(), 3000);
+    console.error("Error connect:", error);
   });
 
 function generarFiltros() {
@@ -583,32 +583,28 @@ function editarProducto(id) {
   formulario.style.display = "block";
 }
 
-function eliminarProducto(id) {
+async function eliminarProducto(id) {
+  if (!confirm("¿Eliminar producto?")) return;
 
- if (!confirm("¿Eliminar producto?")) return;
+  const producto = productos.find(p => p.id === id);
+  if (!producto) return alert("Producto no encontrado");
 
- const producto =
-   productos.find(p => p.id === id);
+  await registrarMovimiento(
+    "ELIMINAR",
+    producto.desc,
+    id,
+    producto.disp,
+    0
+  );
 
- registrarMovimiento(
-   "ELIMINAR",
-   producto.desc,
-   id,
-   producto.disp,
-   0
- );
+  await db.collection("productos").doc(id).update({
+    eliminado: true,
+    eliminadoPor: usuario.nombre,
+    fechaEliminacion: firebase.firestore.FieldValue.serverTimestamp()
+  });
 
- db.collection("productos")
-   .doc(id)
-   .update({
-  eliminado:true,
-  fechaEliminacion:
-  firebase.firestore.FieldValue.serverTimestamp(),
-  eliminadoPor: usuario.nombre
-});
-
+  alert("Premio eliminado del catálogo.");
 }
-
 function abrirImagen(src) {
   document.getElementById("imagenGrande").src = src;
   document.getElementById("modalImagen").style.display = "flex";
@@ -758,6 +754,51 @@ function restaurarProducto(id){
  );
 
 }
+
+async function exportarEliminadosExcel() {
+  if (!esAdmin) {
+    alert("No tienes permiso");
+    return;
+  }
+
+  const snapshot = await db.collection("productos")
+    .where("eliminado", "==", true)
+    .get();
+
+  if (snapshot.empty) {
+    alert("No hay premios eliminados");
+    return;
+  }
+
+  const datos = [];
+
+  snapshot.forEach(doc => {
+    const p = doc.data();
+
+    datos.push({
+      "Producto ID": doc.id,
+      "Premio": p.desc || "",
+      "Puntos IP": p.precio || "",
+      "Stock al eliminar": p.disp || 0,
+      "Eliminado por": p.eliminadoPor || "",
+      "Fecha eliminación": p.fechaEliminacion && p.fechaEliminacion.toDate
+        ? p.fechaEliminacion.toDate().toLocaleString()
+        : "",
+      "Imagen": p.img || ""
+    });
+  });
+
+  const hoja = XLSX.utils.json_to_sheet(datos);
+  const libro = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(libro, hoja, "Premios Eliminados");
+  XLSX.writeFile(libro, "Historial_Premios_Eliminados.xlsx");
+}
+
+
+
+
+  
   
 </script>
 
