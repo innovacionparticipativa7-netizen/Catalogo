@@ -348,6 +348,13 @@ body {
 
 <button onclick="exportarExcel()" class="save admin-only">📊 Exportar a Excel</button>
 <button onclick="exportarIngresosExcel()" class="save admin-only">📥 Exportar Ingresos</button>
+  <button onclick="exportarMovimientosExcel()" class="save admin-only">
+📜 Historial de Movimientos
+</button>
+
+<button onclick="verEliminados()" class="save admin-only">
+🗑️ Premios Eliminados
+</button>
 
 <h1 style="text-align:center;">
   <img src="logo.png" alt="Logo IP" style="width:80px; vertical-align:middle; margin-right:8px;">
@@ -498,7 +505,25 @@ function renderProductos() {
 
   listaProductos.innerHTML = html;
 }
+async function registrarMovimiento(
+  accion,
+  producto,
+  productoId,
+  cantidadAnterior,
+  cantidadNueva
+) {
 
+  await db.collection("movimientos").add({
+    accion,
+    producto,
+    productoId,
+    cantidadAnterior,
+    cantidadNueva,
+    usuario: usuario.nombre,
+    fecha: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+}
 function guardarProducto() {
   if (!descripcion.value || !precio.value || !disponible.value) {
     alert("Completa todos los campos");
@@ -510,10 +535,36 @@ function guardarProducto() {
     precio: Number(precio.value),
     img: imagen.value || "https://via.placeholder.com/300"
   };
-  if (editIndex.value) {
-    db.collection("productos").doc(editIndex.value).update(data);
+  if (editIndex.value) {const anterior =
+ productos.find(p => p.id === editIndex.value);
+
+db.collection("productos")
+.doc(editIndex.value)
+.update(data)
+.then(()=>{
+
+ registrarMovimiento(
+   "EDITAR",
+   data.desc,
+   editIndex.value,
+   anterior.disp,
+   data.disp
+ );
+
+});
   } else {
-    db.collection("productos").add(data);
+    db.collection("productos").add(data)
+      .then(doc=>{
+      
+       registrarMovimiento(
+         "AGREGAR",
+         data.desc,
+         doc.id,
+         0,
+         data.disp
+       );
+      
+      });
   }
   formulario.style.display = "none";
   editIndex.value = "";
@@ -532,9 +583,29 @@ function editarProducto(id) {
 }
 
 function eliminarProducto(id) {
-  if (confirm("¿Eliminar producto?")) {
-    db.collection("productos").doc(id).delete();
-  }
+
+ if (!confirm("¿Eliminar producto?")) return;
+
+ const producto =
+   productos.find(p => p.id === id);
+
+ registrarMovimiento(
+   "ELIMINAR",
+   producto.desc,
+   id,
+   producto.disp,
+   0
+ );
+
+ db.collection("productos")
+   .doc(id)
+   .update({
+  eliminado:true,
+  fechaEliminacion:
+  firebase.firestore.FieldValue.serverTimestamp(),
+  eliminadoPor: usuario.nombre
+});
+
 }
 
 function abrirImagen(src) {
@@ -586,6 +657,51 @@ function exportarIngresosExcel() {
   XLSX.utils.book_append_sheet(libro, hoja, "Ingresos");
   XLSX.writeFile(libro, "Ingresos_IP.xlsx");
 }
+async function exportarMovimientosExcel() {
+
+ const snapshot =
+ await db.collection("movimientos")
+ .orderBy("fecha","desc")
+ .get();
+
+ const datos = [];
+
+ snapshot.forEach(doc=>{
+
+   const m = doc.data();
+
+   datos.push({
+      Accion: m.accion,
+      Producto: m.producto,
+      Usuario: m.usuario,
+      Antes: m.cantidadAnterior,
+      Despues: m.cantidadNueva,
+      Fecha: m.fecha?.toDate().toLocaleString()
+   });
+
+ });
+
+ const hoja =
+ XLSX.utils.json_to_sheet(datos);
+
+ const libro =
+ XLSX.utils.book_new();
+
+ XLSX.utils.book_append_sheet(
+   libro,
+   hoja,
+   "Movimientos"
+ );
+
+ XLSX.writeFile(
+   libro,
+   "Historial_Movimientos.xlsx"
+ );
+
+}
+
+
+  
 </script>
 
 <script>
