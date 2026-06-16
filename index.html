@@ -453,8 +453,6 @@ const imagen         = document.getElementById("imagen");
 let productos = [];
 
 db.collection("productos")
-  .where("eliminado", "!=", true)
-  .orderBy("eliminado")
   .orderBy("precio", "asc")
   .onSnapshot(snapshot => {
     if (!snapshot) return;
