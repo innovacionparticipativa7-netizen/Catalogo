@@ -534,9 +534,7 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 
-db.enablePersistence().catch(err => {
-  console.warn("Persistencia no disponible", err);
-});
+  
 
 let ingresos = [];
 
