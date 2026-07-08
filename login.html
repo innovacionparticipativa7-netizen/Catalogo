@@ -175,6 +175,13 @@ function loginManual() {
   if (!codigo) return alert("Ingresa tu número");
   iniciarSesion(codigo);
 }
+  // NUEVO: permite dar Enter en el input para ingresar
+document.getElementById("empleadoInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    loginManual();
+  }
+});
 
 let buffer = "";
 let timeout = null;
