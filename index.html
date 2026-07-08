@@ -92,10 +92,102 @@ body {
 
 .filtros label {
   display: flex;
-  align-items: center;
-  gap: 5px;
+  flex-direction: column;
+  gap: 8px;
+}
+/* --- Slider de rango de puntos --- */
+.rango-precios {
+  width: 100%;
+  margin-top: 4px;
 }
 
+.rango-valores {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.rango-valores span {
+  background: #eef2ff;
+  color: #2563eb;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.slider-container {
+  position: relative;
+  height: 34px;
+}
+
+.slider-track-bg {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+
+.slider-track-fill {
+  position: absolute;
+  top: 14px;
+  height: 6px;
+  background: linear-gradient(90deg, #2563eb, #9333ea);
+  border-radius: 3px;
+}
+
+.slider-container input[type="range"] {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 22px;
+}
+
+.slider-container input[type="range"]::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  height: 6px;
+  background: transparent;
+}
+
+.slider-container input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: transparent;
+}
+
+.slider-container input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  cursor: pointer;
+  position: relative;
+  z-index: 5;
+}
+
+.slider-container input[type="range"]::-moz-range-thumb {
+  pointer-events: auto;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  cursor: pointer;
+}
 .admin-panel {
   background: white;
   padding: 20px;
@@ -332,7 +424,7 @@ body {
   .stock { font-size: 11px; }
   .top-bar { flex-direction: column; align-items: stretch; gap: 12px; }
   .search { width: 100%; font-size: 16px; }
-  .filtros { overflow-x: auto; white-space: nowrap; }
+  .filtros { overflow-x: visible; white-space: normal; }
 }
 </style>
 </head>
@@ -375,13 +467,26 @@ body {
 <div id="seccion-premios">
 
   <div class="top-bar">
-    <div>
-      <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="renderProductos()">
+  <div>
+    <input id="buscador" class="search" placeholder="Buscar premio..." onkeyup="renderProductos()">
+  </div>
+</div>
+
+<div id="filtros" class="filtros">
+  <strong>Filtrar por puntos:</strong>
+  <div class="rango-precios">
+    <div class="rango-valores">
+      <span id="precioMinLabel">0</span>
+      <span id="precioMaxLabel">0</span>
     </div>
-    <div id="filtros" class="filtros">
-      <strong>Filtrar por puntos:</strong>
+    <div class="slider-container">
+      <div class="slider-track-bg"></div>
+      <div class="slider-track-fill" id="sliderFill"></div>
+      <input type="range" id="rangoMin" min="0" max="0" value="0" oninput="onRangoChange('min')">
+      <input type="range" id="rangoMax" min="0" max="0" value="0" oninput="onRangoChange('max')">
     </div>
   </div>
+</div>
 
   <div id="formulario" class="admin-panel" style="display:none;">
     <input type="hidden" id="editIndex">
@@ -451,7 +556,11 @@ const precio         = document.getElementById("precio");
 const imagen         = document.getElementById("imagen");
 
 let productos = [];
-
+let precioMinGlobal = 0;
+let precioMaxGlobal = 0;
+let filtroMin = 0;
+let filtroMax = 0;
+let rangoInicializado = false;
 db.collection("productos")
   .orderBy("precio", "asc")
   .onSnapshot(snapshot => {
@@ -469,27 +578,80 @@ db.collection("productos")
   });
 
 function generarFiltros() {
-  const cont = document.getElementById("filtros");
-  cont.innerHTML = "<strong>Filtrar por puntos:</strong>";
-  [...new Set(productos.map(p => p.precio))]
-    .sort((a, b) => a - b)
-    .forEach(p => {
-      cont.innerHTML += `
-        <label>
-          <input type="checkbox" value="${p}" onchange="renderProductos()">
-          ${p} IP
-        </label>`;
-    });
+  if (!productos.length) {
+    precioMinGlobal = 0;
+    precioMaxGlobal = 0;
+    filtroMin = 0;
+    filtroMax = 0;
+    actualizarSlider();
+    return;
+  }
+
+  const precios = productos.map(p => p.precio);
+  precioMinGlobal = Math.min(...precios);
+  precioMaxGlobal = Math.max(...precios);
+
+  const rangoMin = document.getElementById("rangoMin");
+  const rangoMax = document.getElementById("rangoMax");
+
+  rangoMin.min = precioMinGlobal;
+  rangoMin.max = precioMaxGlobal;
+  rangoMax.min = precioMinGlobal;
+  rangoMax.max = precioMaxGlobal;
+
+  if (!rangoInicializado) {
+    filtroMin = precioMinGlobal;
+    filtroMax = precioMaxGlobal;
+    rangoInicializado = true;
+  } else {
+    filtroMin = Math.min(Math.max(filtroMin, precioMinGlobal), precioMaxGlobal);
+    filtroMax = Math.max(Math.min(filtroMax, precioMaxGlobal), precioMinGlobal);
+  }
+
+  rangoMin.value = filtroMin;
+  rangoMax.value = filtroMax;
+
+  actualizarSlider();
+}
+  function onRangoChange(origen) {
+  const rangoMin = document.getElementById("rangoMin");
+  const rangoMax = document.getElementById("rangoMax");
+
+  let vMin = Number(rangoMin.value);
+  let vMax = Number(rangoMax.value);
+
+  if (vMin > vMax) {
+    if (origen === "min") { vMin = vMax; rangoMin.value = vMin; }
+    else { vMax = vMin; rangoMax.value = vMax; }
+  }
+
+  filtroMin = vMin;
+  filtroMax = vMax;
+
+  actualizarSlider();
+  renderProductos();
+}
+
+function actualizarSlider() {
+  document.getElementById("precioMinLabel").textContent = filtroMin + " IP";
+  document.getElementById("precioMaxLabel").textContent = filtroMax + " IP";
+
+  const rango = (precioMaxGlobal - precioMinGlobal) || 1;
+  const porcentajeMin = ((filtroMin - precioMinGlobal) / rango) * 100;
+  const porcentajeMax = ((filtroMax - precioMinGlobal) / rango) * 100;
+
+  const fill = document.getElementById("sliderFill");
+  fill.style.left = porcentajeMin + "%";
+  fill.style.width = Math.max(0, (porcentajeMax - porcentajeMin)) + "%";
 }
 
 function renderProductos() {
   const texto = buscador.value.toLowerCase();
-  const precios = [...document.querySelectorAll("#filtros input:checked")].map(c => c.value);
   let html = "";
 
   productos.forEach(p => {
     if (!p.desc?.toLowerCase().includes(texto)) return;
-    if (precios.length && !precios.includes(String(p.precio))) return;
+    if (p.precio < filtroMin || p.precio > filtroMax) return;
     html += `
       <div class="card">
         <img src="${p.img}" loading="lazy" width="200" height="150" onclick="abrirImagen('${p.img}')">
