@@ -975,8 +975,28 @@ async function exportarEliminadosExcel() {
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js")
-    .then(() => console.log("PWA activa"))
+    .then(reg => {
+      console.log("PWA activa");
+
+      // Si detecta una nueva versión del service worker, recarga sola
+      reg.addEventListener("updatefound", () => {
+        const nuevoWorker = reg.installing;
+        nuevoWorker.addEventListener("statechange", () => {
+          if (nuevoWorker.state === "activated") {
+            window.location.reload();
+          }
+        });
+      });
+    })
     .catch(err => console.error("Error PWA:", err));
+
+  // Si el service worker cambia de "dueño" (nueva versión tomó control), recarga
+  let recargando = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (recargando) return;
+    recargando = true;
+    window.location.reload();
+  });
 }
 </script>
   
