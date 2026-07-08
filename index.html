@@ -561,19 +561,29 @@ let filtroMax = 0;
 let rangoInicializado = false;
 db.collection("productos")
   .orderBy("precio", "asc")
-  .onSnapshot(snapshot => {
-    if (!snapshot) return;
+  .onSnapshot(
+    { includeMetadataChanges: true },
+    snapshot => {
+      if (!snapshot) return;
 
-    productos = snapshot.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(p => p.eliminado !== true);
+      // Si el dato viene de la caché local (no confirmado por el servidor), lo ignoramos
+      if (snapshot.metadata.fromCache) {
+        console.log("Esperando datos frescos del servidor...");
+        return;
+      }
 
-    document.getElementById("loading").style.display = "none";
-    generarFiltros();
-    renderProductos();
-  }, error => {
-    console.error("Error connect:", error);
-  });
+      productos = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => p.eliminado !== true);
+
+      document.getElementById("loading").style.display = "none";
+      generarFiltros();
+      renderProductos();
+    },
+    error => {
+      console.error("Error connect:", error);
+    }
+  );
 
 function generarFiltros() {
   if (!productos.length) {
