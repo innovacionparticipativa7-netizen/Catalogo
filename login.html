@@ -110,6 +110,25 @@ body {
 </div>
 
 <script>
+  // --- Limpieza automática de caché vieja (dispositivo siempre con internet) ---
+(async function limpiarCacheVieja() {
+  try {
+    if ("caches" in window) {
+      const nombres = await caches.keys();
+      await Promise.all(nombres.map(nombre => caches.delete(nombre)));
+    }
+    if ("serviceWorker" in navigator) {
+      const registros = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registros.map(reg => reg.unregister()));
+    }
+    // Borra datos offline guardados por versiones anteriores
+    localStorage.removeItem("usuariosOffline");
+    localStorage.removeItem("usuariosOfflineFecha");
+    localStorage.removeItem("ingresosPendientes");
+  } catch (err) {
+    console.warn("No se pudo limpiar caché vieja:", err);
+  }
+})();
 /* ===== FIREBASE ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
@@ -123,22 +142,6 @@ function normalizarCodigo(valor) {
   return String(valor || "").trim().replace(/\D/g, "").replace(/^0+/, "");
 }
 
-async function guardarUsuariosOffline() {
-  try {
-    if (!navigator.onLine) return;
-    const snapshot = await db.collection("usuarios").get();
-    const usuarios = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return { id: doc.id, ...data, controlNormalizado: normalizarCodigo(data.control) };
-    });
-    localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
-    localStorage.setItem("usuariosOfflineFecha", new Date().toLocaleString());
-  } catch (error) {
-    console.error("Error guardando usuarios offline:", error);
-  }
-}
-
-guardarUsuariosOffline();
 
 let bloqueado = false;
 
@@ -150,24 +153,15 @@ function iniciarSesion(codigo) {
   codigo = normalizarCodigo(codigo);
   if (!codigo) { alert("Código inválido"); return; }
 
-  const usuarios = JSON.parse(localStorage.getItem("usuariosOffline") || "[]");
-  const usuarioLocal = usuarios.find(u =>
-    normalizarCodigo(u.control) === codigo ||
-    normalizarCodigo(u.controlNormalizado) === codigo
-  );
-
-  if (usuarioLocal) {
-    completarLogin(usuarioLocal.id, codigo, usuarioLocal, "offline-local");
-    return;
-  }
-
-  db.collection("usuarios").where("control", "==", codigo).limit(1).get()
+  db.collection("usuarios").get()
     .then(snapshot => {
-      if (snapshot.empty) { alert("Empleado no registrado"); return; }
-      const doc = snapshot.docs[0];
+      const doc = snapshot.docs.find(d =>
+        normalizarCodigo(d.data().control) === codigo
+      );
+      if (!doc) { alert("Empleado no registrado"); return; }
       completarLogin(doc.id, codigo, doc.data(), "online");
     })
-    .catch(() => alert("No hay internet y el empleado no está guardado localmente"));
+    .catch(() => alert("Error de conexión, intenta de nuevo"));
 }
 
 function loginManual() {
@@ -212,20 +206,12 @@ function cerrarCamara() {
 }
 
 function completarLogin(docId, codigo, data, modo) {
-  const ingreso = {
+  db.collection("ingresos").add({
     empleadoId: codigo,
     nombre: data.nombre,
-    fecha: new Date().toISOString(),
+    fecha: new Date(),
     origen: modo
-  };
-
-  if (navigator.onLine) {
-    db.collection("ingresos").add({ ...ingreso, fecha: new Date() });
-  } else {
-    const pendientes = JSON.parse(localStorage.getItem("ingresosPendientes") || "[]");
-    pendientes.push(ingreso);
-    localStorage.setItem("ingresosPendientes", JSON.stringify(pendientes));
-  }
+  });
 
   sessionStorage.setItem("usuario", JSON.stringify({
     id: docId,
@@ -238,9 +224,6 @@ function completarLogin(docId, codigo, data, modo) {
   window.location.href = "index.html";
 }
 </script>
-
-<!-- SYNC: siempre al final, después de Firebase -->
-<script src="sync.js"></script>
 
 </body>
 </html>
