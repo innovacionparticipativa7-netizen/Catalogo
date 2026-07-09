@@ -515,7 +515,24 @@ const sesion = sessionStorage.getItem("usuario");
 if (!sesion) {
   window.location.href = "login.html";
 }
+// --- Limpieza automática de caché vieja (para dispositivos con internet siempre) ---
+(async function limpiarCacheVieja() {
+  try {
+    // 1) Borra todo lo guardado por el Service Worker (Cache Storage)
+    if ("caches" in window) {
+      const nombres = await caches.keys();
+      await Promise.all(nombres.map(nombre => caches.delete(nombre)));
+    }
 
+    // 2) Desregistra cualquier Service Worker activo (ya no lo necesitamos aquí)
+    if ("serviceWorker" in navigator) {
+      const registros = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registros.map(reg => reg.unregister()));
+    }
+  } catch (err) {
+    console.warn("No se pudo limpiar caché vieja:", err);
+  }
+})();
 const usuario = JSON.parse(sesion);
 const esAdmin = usuario.rol === "admin";
 
@@ -970,34 +987,6 @@ async function exportarEliminadosExcel() {
 
   
   
-</script>
-
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js")
-    .then(reg => {
-      console.log("PWA activa");
-
-      // Si detecta una nueva versión del service worker, recarga sola
-      reg.addEventListener("updatefound", () => {
-        const nuevoWorker = reg.installing;
-        nuevoWorker.addEventListener("statechange", () => {
-          if (nuevoWorker.state === "activated") {
-            window.location.reload();
-          }
-        });
-      });
-    })
-    .catch(err => console.error("Error PWA:", err));
-
-  // Si el service worker cambia de "dueño" (nueva versión tomó control), recarga
-  let recargando = false;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (recargando) return;
-    recargando = true;
-    window.location.reload();
-  });
-}
 </script>
   
 <script src="sync.js"></script>
