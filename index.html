@@ -555,12 +555,6 @@ const db = firebase.firestore();
 
 let ingresos = [];
 
-db.collection("ingresos")
-  .orderBy("fecha", "desc")
-  .onSnapshot(snapshot => {
-    ingresos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  });
-
 const listaProductos = document.getElementById("listaProductos");
 const buscador       = document.getElementById("buscador");
 const formulario     = document.getElementById("formulario");
@@ -826,20 +820,46 @@ function exportarExcel() {
   XLSX.writeFile(libro, "Premios_IP.xlsx");
 }
 
-function exportarIngresosExcel() {
-  if (!esAdmin) { alert("No tienes permiso"); return; }
-  if (!ingresos.length) { alert("No hay registros"); return; }
-  const datos = ingresos.map(i => ({
-    "Empleado ID": i.empleadoId,
-    "Nombre": i.nombre,
-    "Fecha": i.fecha && typeof i.fecha.toDate === "function"
-      ? i.fecha.toDate().toLocaleString()
-      : new Date(i.fecha).toLocaleString()
-  }));
-  const hoja  = XLSX.utils.json_to_sheet(datos);
-  const libro = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(libro, hoja, "Ingresos");
-  XLSX.writeFile(libro, "Ingresos_IP.xlsx");
+async function exportarIngresosExcel() {
+  if (!esAdmin) {
+    alert("No tienes permiso");
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection("ingresos")
+      .orderBy("fecha", "desc")
+      .get();
+
+    if (snapshot.empty) {
+      alert("No hay registros");
+      return;
+    }
+
+    const datos = snapshot.docs.map(doc => {
+      const i = doc.data();
+
+      return {
+        "Empleado ID": i.empleadoId || "",
+        "Nombre": i.nombre || "",
+        "Fecha": i.fecha && typeof i.fecha.toDate === "function"
+          ? i.fecha.toDate().toLocaleString()
+          : i.fecha
+            ? new Date(i.fecha).toLocaleString()
+            : ""
+      };
+    });
+
+    const hoja = XLSX.utils.json_to_sheet(datos);
+    const libro = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(libro, hoja, "Ingresos");
+    XLSX.writeFile(libro, "Ingresos_IP.xlsx");
+
+  } catch (error) {
+    console.error("Error al exportar ingresos:", error);
+    alert("No fue posible descargar los ingresos.");
+  }
 }
 async function exportarMovimientosExcel() {
 
