@@ -107,6 +107,42 @@ body {
   </div>
 
   <div class="info">El lector se activa automáticamente</div>
+  <style>
+  .btn-volver-ip{
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #0A2647;
+    color: #EAF0F5;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    border-radius: 999px;
+    border: 1px solid rgba(234,240,245,0.15);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  }
+  .btn-volver-ip:hover{
+    background: #2C74B3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(95,168,211,0.45);
+  }
+  .btn-volver-ip svg{ width: 16px; height: 16px; flex-shrink: 0; }
+</style>
+
+<a class="btn-volver-ip" href="https://innovacionparticipativa7-netizen.github.io/CI-page/">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5"/>
+    <path d="M12 19l-7-7 7-7"/>
+  </svg>
+  Volver al panel
+</a>
 </div>
 
 <script>
