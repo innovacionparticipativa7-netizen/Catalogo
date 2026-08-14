@@ -625,7 +625,7 @@ function actualizarTotalColaboradores() {
     let total = 0;
     snapshot.forEach(doc => {
       const u = doc.data();
-      total += Number(u.puntos) || 0;
+      total += Number(u.puntosActuales) || 0;
     });
     const totalEl = document.getElementById("totalPuntosColaboradores");
     if (totalEl) totalEl.textContent = total.toLocaleString();
