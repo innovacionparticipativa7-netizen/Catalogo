@@ -442,6 +442,10 @@ body {
   💎 Valor total del catálogo: <span id="totalPuntosCatalogo">0</span> IP
 </div>
 
+<div id="totalPorCobrar" class="admin-only" style="background:white;padding:14px 16px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,0.08);margin-bottom:20px;font-weight:700;">
+  📌 Puntos por cobrar : <span id="totalPuntosColaboradores">0</span> IP
+</div>
+
 <button onclick="exportarExcel()" class="save admin-only">📊 Exportar a catalogo</button>
   
 <button onclick="exportarIngresosExcel()" class="save admin-only">📥 Exportar Ingresos</button>
@@ -546,6 +550,7 @@ document.getElementById("puntosUsuario").textContent = usuario.puntos;
 
 if (esAdmin) {
   document.body.classList.add("admin-mode");
+  actualizarTotalColaboradores();
 }
 
 firebase.initializeApp({
@@ -608,6 +613,22 @@ function calcularTotalCatalogo() {
 function actualizarTotalCatalogo() {
   const totalEl = document.getElementById("totalPuntosCatalogo");
   if (totalEl) totalEl.textContent = calcularTotalCatalogo().toLocaleString();
+}
+
+function actualizarTotalColaboradores() {
+  if (!esAdmin) return;
+
+  db.collection("usuarios").get().then(snapshot => {
+    let total = 0;
+    snapshot.forEach(doc => {
+      const u = doc.data();
+      total += Number(u.puntos) || 0;
+    });
+    const totalEl = document.getElementById("totalPuntosColaboradores");
+    if (totalEl) totalEl.textContent = total.toLocaleString();
+  }).catch(err => {
+    console.error("Error al calcular puntos de colaboradores:", err);
+  });
 }
 function generarFiltros() {
   if (!productos.length) {
