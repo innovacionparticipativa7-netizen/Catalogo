@@ -550,7 +550,6 @@ document.getElementById("puntosUsuario").textContent = usuario.puntos;
 
 if (esAdmin) {
   document.body.classList.add("admin-mode");
-  actualizarTotalColaboradores();
 }
 
 firebase.initializeApp({
@@ -560,6 +559,10 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+
+if (esAdmin) {
+  actualizarTotalColaboradores();
+}
 
   
 
