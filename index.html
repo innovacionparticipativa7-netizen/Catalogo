@@ -438,7 +438,12 @@ body {
   <button onclick="cerrarSesion()">Salir</button>
 </div>
 
-<button onclick="exportarExcel()" class="save admin-only">📊 Exportar a Excel</button>
+<div id="totalCatalogo" class="admin-only" style="background:white;padding:14px 16px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,0.08);margin-bottom:20px;font-weight:700;">
+  💎 Valor total del catálogo: <span id="totalPuntosCatalogo">0</span> IP
+</div>
+
+<button onclick="exportarExcel()" class="save admin-only">📊 Exportar a catalogo</button>
+  
 <button onclick="exportarIngresosExcel()" class="save admin-only">📥 Exportar Ingresos</button>
   <button onclick="exportarMovimientosExcel()" class="save admin-only">
 📜 Historial de Movimientos
@@ -590,12 +595,20 @@ db.collection("productos")
       document.getElementById("loading").style.display = "none";
       generarFiltros();
       renderProductos();
+      actualizarTotalCatalogo();
     },
     error => {
       console.error("Error connect:", error);
     }
   );
+function calcularTotalCatalogo() {
+  return productos.reduce((acc, p) => acc + (p.precio * p.disp), 0);
+}
 
+function actualizarTotalCatalogo() {
+  const totalEl = document.getElementById("totalPuntosCatalogo");
+  if (totalEl) totalEl.textContent = calcularTotalCatalogo().toLocaleString();
+}
 function generarFiltros() {
   if (!productos.length) {
     precioMinGlobal = 0;
@@ -692,8 +705,20 @@ async function registrarMovimiento(
   producto,
   productoId,
   cantidadAnterior,
-  cantidadNueva
+  cantidadNueva,
+  precio
 ) {
+  const precioNum = Number(precio) || 0;
+  let puntos = 0;
+
+  if (accion === "AGREGAR" || accion === "RESTAURAR") {
+    puntos = precioNum * cantidadNueva;
+  } else if (accion === "ELIMINAR") {
+    puntos = -(precioNum * cantidadAnterior);
+  } else {
+    // EDITAR: diferencia de valor por el cambio de stock
+    puntos = precioNum * (cantidadNueva - cantidadAnterior);
+  }
 
   await db.collection("movimientos").add({
     accion,
@@ -701,6 +726,7 @@ async function registrarMovimiento(
     productoId,
     cantidadAnterior,
     cantidadNueva,
+    puntos,
     usuario: usuario.nombre,
     fecha: firebase.firestore.FieldValue.serverTimestamp()
   });
@@ -717,7 +743,7 @@ function guardarProducto() {
     precio: Number(precio.value),
     img: imagen.value || "https://via.placeholder.com/300"
   };
-  if (editIndex.value) {const anterior =
+if (editIndex.value) {const anterior =
  productos.find(p => p.id === editIndex.value);
 
 db.collection("productos")
@@ -730,7 +756,8 @@ db.collection("productos")
    data.desc,
    editIndex.value,
    anterior.disp,
-   data.disp
+   data.disp,
+   data.precio
  );
 
 });
@@ -743,7 +770,8 @@ db.collection("productos")
          data.desc,
          doc.id,
          0,
-         data.disp
+         data.disp,
+         data.precio
        );
       
       });
@@ -770,12 +798,13 @@ async function eliminarProducto(id) {
   const producto = productos.find(p => p.id === id);
   if (!producto) return alert("Producto no encontrado");
 
-  await registrarMovimiento(
+await registrarMovimiento(
     "ELIMINAR",
     producto.desc,
     id,
     producto.disp,
-    0
+    0,
+    producto.precio
   );
 
   await db.collection("productos").doc(id).update({
@@ -813,7 +842,21 @@ function cerrarSesion() {
 function exportarExcel() {
   if (!esAdmin) { alert("No tienes permiso para exportar"); return; }
   if (!productos.length) { alert("No hay datos para exportar"); return; }
-  const datos = productos.map(p => ({ "Premio": p.desc, "Disponibles": p.disp }));
+
+  const datos = productos.map(p => ({
+    "Premio": p.desc,
+    "Disponibles": p.disp,
+    "Puntos IP": p.precio,
+    "Valor total (Puntos x Disp)": p.precio * p.disp
+  }));
+
+  datos.push({
+    "Premio": "TOTAL CATÁLOGO",
+    "Disponibles": "",
+    "Puntos IP": "",
+    "Valor total (Puntos x Disp)": calcularTotalCatalogo()
+  });
+
   const hoja  = XLSX.utils.json_to_sheet(datos);
   const libro = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(libro, hoja, "Premios");
@@ -874,12 +917,16 @@ async function exportarMovimientosExcel() {
 
    const m = doc.data();
 
+   const puntos = m.puntos || 0;
+   const puntosTexto = puntos > 0 ? `+${puntos}` : `${puntos}`;
+
    datos.push({
       Accion: m.accion,
       Producto: m.producto,
       Usuario: m.usuario,
       Antes: m.cantidadAnterior,
       Despues: m.cantidadNueva,
+      Puntos: puntosTexto,
       Fecha: m.fecha?.toDate().toLocaleString()
    });
 
@@ -944,6 +991,9 @@ async function verEliminados() {
 }
 function restaurarProducto(id){
 
+ const producto = productos.find(p => p.id === id);
+ if (!producto) return;
+
  db.collection("productos")
  .doc(id)
  .update({
@@ -956,8 +1006,9 @@ function restaurarProducto(id){
    "RESTAURAR",
    producto.desc,
    id,
+   0,
    producto.disp,
-   producto.disp
+   producto.precio
  );
 
 }
