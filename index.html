@@ -621,17 +621,22 @@ function actualizarTotalCatalogo() {
 function actualizarTotalColaboradores() {
   if (!esAdmin) return;
 
-  db.collection("usuarios").get().then(snapshot => {
-    let total = 0;
-    snapshot.forEach(doc => {
-      const u = doc.data();
-      total += Number(u.puntosActuales) || 0;
-    });
-    const totalEl = document.getElementById("totalPuntosColaboradores");
-    if (totalEl) totalEl.textContent = total.toLocaleString();
-  }).catch(err => {
-    console.error("Error al calcular puntos de colaboradores:", err);
-  });
+  db.collection("usuarios").onSnapshot(
+    snapshot => {
+      let total = 0;
+      snapshot.forEach(doc => {
+        const u = doc.data();
+        total += Number(u.puntosActuales) || 0;
+      });
+      const totalEl = document.getElementById("totalPuntosColaboradores");
+      if (totalEl) totalEl.textContent = total.toLocaleString();
+    },
+    err => {
+      console.error("Error al calcular puntos de colaboradores:", err);
+      const totalEl = document.getElementById("totalPuntosColaboradores");
+      if (totalEl) totalEl.textContent = "Error";
+    }
+  );
 }
 function generarFiltros() {
   if (!productos.length) {
