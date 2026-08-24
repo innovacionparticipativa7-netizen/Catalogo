@@ -426,6 +426,41 @@ body {
   .search { width: 100%; font-size: 16px; }
   .filtros { overflow-x: visible; white-space: normal; }
 }
+
+#modalUsuarios {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#modalUsuarios .contenido {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+#modalUsuarios h2 { margin-top: 0; }
+
+#modalUsuarios .cerrar-modal {
+  float: right;
+  cursor: pointer;
+  font-size: 20px;
+  border: none;
+  background: none;
+}
+
+
+
+  
 </style>
 </head>
 <body>
@@ -447,6 +482,13 @@ body {
 </div>
 
 <button onclick="exportarExcel()" class="save admin-only">📊 Exportar a catalogo</button>
+
+  <div id="totalVisitas" class="admin-only" style="background:white;padding:14px 16px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,0.08);margin-bottom:20px;font-weight:700;">
+  📈 Visitas totales: <span id="totalVisitasCount">0</span>
+  &nbsp;|&nbsp; Hoy: <span id="visitasHoyCount">0</span>
+</div>
+
+<button onclick="mostrarUsuariosSinIngresar()" class="save admin-only">👥 Usuarios sin ingresar</button>
   
 <button onclick="exportarIngresosExcel()" class="save admin-only">📥 Exportar Ingresos</button>
   <button onclick="exportarMovimientosExcel()" class="save admin-only">
@@ -518,6 +560,19 @@ body {
 <div id="modalImagen" onclick="cerrarImagen()">
   <img id="imagenGrande">
 </div>
+  
+  <div id="modalUsuarios">
+  <div class="contenido">
+    <button class="cerrar-modal" onclick="cerrarModalUsuarios()">✖</button>
+    <h2>👥 Usuarios que no han ingresado</h2>
+    <table class="tabla-puntos" id="tablaUsuariosSinIngresar">
+      <thead>
+        <tr><th>Control</th><th>Nombre</th><th>Puntos</th></tr>
+      </thead>
+      <tbody id="cuerpoUsuariosSinIngresar"></tbody>
+    </table>
+  </div>
+</div>
 
 <script>
 const sesion = sessionStorage.getItem("usuario");
@@ -562,6 +617,7 @@ const db = firebase.firestore();
 
 if (esAdmin) {
   actualizarTotalColaboradores();
+  actualizarVisitas();
 }
 
   
@@ -638,6 +694,91 @@ function actualizarTotalColaboradores() {
     }
   );
 }
+
+
+  
+function normalizarCodigo(valor) {
+  return String(valor || "").trim().replace(/\D/g, "").replace(/^0+/, "");
+}
+
+async function actualizarVisitas() {
+  if (!esAdmin) return;
+
+  try {
+    const totalSnap = await db.collection("ingresos").count().get();
+    document.getElementById("totalVisitasCount").textContent =
+      totalSnap.data().count.toLocaleString();
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const hoySnap = await db.collection("ingresos")
+      .where("fecha", ">=", hoy)
+      .count().get();
+
+    document.getElementById("visitasHoyCount").textContent =
+      hoySnap.data().count.toLocaleString();
+
+  } catch (err) {
+    console.error("Error al calcular visitas:", err);
+  }
+}
+
+async function mostrarUsuariosSinIngresar() {
+  if (!esAdmin) return;
+
+  try {
+    const [usuariosSnap, ingresosSnap] = await Promise.all([
+      db.collection("usuarios").get(),
+      db.collection("ingresos").get()
+    ]);
+
+    const idsConIngreso = new Set(
+      ingresosSnap.docs.map(d => normalizarCodigo(d.data().empleadoId))
+    );
+
+    const sinIngresar = usuariosSnap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(u => !idsConIngreso.has(normalizarCodigo(u.control)));
+
+    const cuerpo = document.getElementById("cuerpoUsuariosSinIngresar");
+
+    if (!sinIngresar.length) {
+      cuerpo.innerHTML =
+        `<tr><td colspan="3">🎉 Todos los usuarios registrados ya han ingresado al menos una vez.</td></tr>`;
+    } else {
+      cuerpo.innerHTML = sinIngresar.map(u => `
+        <tr>
+          <td>${u.control ?? ""}</td>
+          <td>${u.nombre ?? ""}</td>
+          <td>${u.puntosActuales ?? 0}</td>
+        </tr>
+      `).join("");
+    }
+
+    document.getElementById("modalUsuarios").style.display = "flex";
+
+  } catch (err) {
+    console.error("Error al calcular usuarios sin ingresar:", err);
+    alert("No se pudo calcular la lista de usuarios sin ingresar.");
+  }
+}
+
+function cerrarModalUsuarios() {
+  document.getElementById("modalUsuarios").style.display = "none";
+}
+
+
+
+
+
+  
+
+
+
+
+
+  
 function generarFiltros() {
   if (!productos.length) {
     precioMinGlobal = 0;
