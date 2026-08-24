@@ -564,7 +564,7 @@ body {
   <div id="modalUsuarios">
   <div class="contenido">
     <button class="cerrar-modal" onclick="cerrarModalUsuarios()">✖</button>
-    <h2>👥 Usuarios que no ya ingresado</h2>
+    <h2>👥 Usuarios que ya ingresaron (<span id="totalYaIngresaron">0</span>)</h2>
     <table class="tabla-puntos" id="tablaUsuariosSinIngresar">
       <thead>
         <tr><th>Control</th><th>Nombre</th><th>Puntos</th></tr>
@@ -701,27 +701,30 @@ function normalizarCodigo(valor) {
   return String(valor || "").trim().replace(/\D/g, "").replace(/^0+/, "");
 }
 
-async function actualizarVisitas() {
+function actualizarVisitas() {
   if (!esAdmin) return;
 
-  try {
-    const totalSnap = await db.collection("ingresos").count().get();
-    document.getElementById("totalVisitasCount").textContent =
-      totalSnap.data().count.toLocaleString();
+  db.collection("ingresos").onSnapshot(
+    snapshot => {
+      const total = snapshot.size;
 
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
 
-    const hoySnap = await db.collection("ingresos")
-      .where("fecha", ">=", hoy)
-      .count().get();
+      let hoyCount = 0;
+      snapshot.forEach(doc => {
+        const f = doc.data().fecha;
+        const fechaJS = f && typeof f.toDate === "function" ? f.toDate() : new Date(f);
+        if (fechaJS >= hoy) hoyCount++;
+      });
 
-    document.getElementById("visitasHoyCount").textContent =
-      hoySnap.data().count.toLocaleString();
-
-  } catch (err) {
-    console.error("Error al calcular visitas:", err);
-  }
+      document.getElementById("totalVisitasCount").textContent = total.toLocaleString();
+      document.getElementById("visitasHoyCount").textContent = hoyCount.toLocaleString();
+    },
+    err => {
+      console.error("Error al calcular visitas:", err);
+    }
+  );
 }
 
 async function mostrarUsuariosSinIngresar() {
@@ -755,7 +758,7 @@ async function mostrarUsuariosSinIngresar() {
         </tr>
       `).join("");
     }
-
+    document.getElementById("totalYaIngresaron").textContent = yaIngresaron.length;
     document.getElementById("modalUsuarios").style.display = "flex";
 
   } catch (err) {
