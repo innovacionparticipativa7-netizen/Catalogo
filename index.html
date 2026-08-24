@@ -488,7 +488,7 @@ body {
   &nbsp;|&nbsp; Hoy: <span id="visitasHoyCount">0</span>
 </div>
 
-<button onclick="mostrarUsuariosSinIngresar()" class="save admin-only">👥 Usuarios sin ingresar</button>
+<button onclick="mostrarUsuariosSinIngresar()" class="save admin-only">👥 Usuarios que ya ingresaron</button>
   
 <button onclick="exportarIngresosExcel()" class="save admin-only">📥 Exportar Ingresos</button>
   <button onclick="exportarMovimientosExcel()" class="save admin-only">
@@ -564,7 +564,7 @@ body {
   <div id="modalUsuarios">
   <div class="contenido">
     <button class="cerrar-modal" onclick="cerrarModalUsuarios()">✖</button>
-    <h2>👥 Usuarios que no han ingresado</h2>
+    <h2>👥 Usuarios que no ya ingresado</h2>
     <table class="tabla-puntos" id="tablaUsuariosSinIngresar">
       <thead>
         <tr><th>Control</th><th>Nombre</th><th>Puntos</th></tr>
@@ -737,17 +737,17 @@ async function mostrarUsuariosSinIngresar() {
       ingresosSnap.docs.map(d => normalizarCodigo(d.data().empleadoId))
     );
 
-    const sinIngresar = usuariosSnap.docs
+    const yaIngresaron = usuariosSnap.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      .filter(u => !idsConIngreso.has(normalizarCodigo(u.control)));
+      .filter(u => idsConIngreso.has(normalizarCodigo(u.control)));
 
     const cuerpo = document.getElementById("cuerpoUsuariosSinIngresar");
 
-    if (!sinIngresar.length) {
+    if (!yaIngresaron.length) {
       cuerpo.innerHTML =
-        `<tr><td colspan="3">🎉 Todos los usuarios registrados ya han ingresado al menos una vez.</td></tr>`;
+        `<tr><td colspan="3">Todavía nadie ha ingresado al sistema.</td></tr>`;
     } else {
-      cuerpo.innerHTML = sinIngresar.map(u => `
+      cuerpo.innerHTML = yaIngresaron.map(u => `
         <tr>
           <td>${u.control ?? ""}</td>
           <td>${u.nombre ?? ""}</td>
@@ -759,8 +759,8 @@ async function mostrarUsuariosSinIngresar() {
     document.getElementById("modalUsuarios").style.display = "flex";
 
   } catch (err) {
-    console.error("Error al calcular usuarios sin ingresar:", err);
-    alert("No se pudo calcular la lista de usuarios sin ingresar.");
+    console.error("Error al calcular usuarios que ya ingresaron:", err);
+    alert("No se pudo calcular la lista de usuarios que ya ingresaron.");
   }
 }
 
