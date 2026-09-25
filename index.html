@@ -489,7 +489,7 @@ body {
 </div>
 
 <button onclick="mostrarUsuariosSinIngresar()" class="save admin-only">👥 Usuarios que ya ingresaron</button>
-<button onclick="exportarExcel()" class="save admin-only">📊 Exportar a catalogo</button>
+<button onclick="abrirInventario()" class="save admin-only">📦 Inventario de premios</button>
 <button onclick="exportarIngresosExcel()" class="save admin-only">📥 Exportar Ingresos</button>
   <button onclick="exportarMovimientosExcel()" class="save admin-only">
 📜 Historial de Movimientos
@@ -905,7 +905,25 @@ async function registrarMovimiento(
   });
 
 }
+function abrirInventario(productoId = "") {
+  if (!esAdmin) return alert("No tienes permiso");
+  sessionStorage.setItem("inventarioVolver", window.location.href);
+  window.location.href = "inventario.html" + (productoId ? "?producto=" + encodeURIComponent(productoId) : "");
+}
+
 function guardarProducto() {
+  if (!esAdmin) return alert("No tienes permiso");
+  // Las reposiciones se hacen sobre el mismo producto, sin crear otra tarjeta.
+  if (!editIndex.value) {
+    const normalizarNombreInventario = valor => String(valor || "").normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("es");
+    const existentes = productos.filter(p => normalizarNombreInventario(p.desc) === normalizarNombreInventario(descripcion.value));
+    if (existentes.length) {
+      alert("Este premio ya existe. Agrega las unidades desde Inventario para conservar su imagen y ubicaciones.");
+      abrirInventario(existentes.length === 1 ? existentes[0].id : "");
+      return;
+    }
+  }
+
   if (!descripcion.value || !precio.value || !disponible.value) {
     alert("Completa todos los campos");
     return;
@@ -1239,8 +1257,6 @@ async function exportarEliminadosExcel() {
   
 </body>
 </html>
-
-
 
 
 
