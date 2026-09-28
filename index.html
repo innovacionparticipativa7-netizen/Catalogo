@@ -461,6 +461,12 @@ body {
 
 
   
+
+.stock-fila{display:grid;grid-template-columns:1.3fr 1fr 1fr auto;gap:8px;align-items:center;margin:8px 0}
+.stock-fila input,.stock-fila select{width:100%;min-width:0;padding:10px;border:1px solid #cbd5e1;border-radius:7px;margin:0}
+#stockEditor{margin:18px 0;padding:14px;background:#f1f5f9;border-radius:10px}
+#stockEditor p{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:540px){.stock-fila{grid-template-columns:1fr 1fr}.stock-cabecera{display:none}}
 </style>
 </head>
 <body>
@@ -540,9 +546,20 @@ body {
   <div id="formulario" class="admin-panel" style="display:none;">
     <input type="hidden" id="editIndex">
     <input id="descripcion" placeholder="Descripción">
-    <input id="disponible" type="number" placeholder="Disponible">
+    <label for="disponible">Disponibles (total por ubicación)</label>
+    <input id="disponible" type="number" placeholder="Disponible" readonly>
     <input id="precio" type="number" placeholder="Puntos IP">
     <input id="imagen" placeholder="URL imagen">
+    <!-- INICIO: ubicaciones y cantidades -->
+    <section id="stockEditor">
+      <h3>Ubicaciones y cantidades</h3>
+      <p>Captura la cantidad final de cada estante. Para una salida, reduce su cantidad; para un traslado, resta en origen y suma en destino. No sumes las unidades Sin asignar otra vez: distribúyelas.</p>
+      <div class="stock-fila stock-cabecera"><strong>Ubicación</strong><strong>Estante</strong><strong>Cantidad</strong><span></span></div>
+      <div id="stockFilas"></div>
+      <button type="button" onclick="agregarEstante()">+ Agregar ubicación</button>
+      <p id="stockMensaje" role="status"></p><p id="stockAnterior"></p>
+    </section>
+    <!-- FIN: ubicaciones y cantidades -->
     <button onclick="guardarProducto()">Guardar</button>
     <button class="cancel" onclick="document.getElementById('formulario').style.display='none'">Cancelar</button>
   </div>
@@ -988,172 +1005,123 @@ function abrirInventario(productoId = "") {
   window.location.href = "inventario.html" + (productoId ? "?producto=" + encodeURIComponent(productoId) : "");
 }
 
-async function guardarProducto() {
-  if (!esAdmin) {
-    alert("No tienes permiso");
-    return;
+/* Modelo de inventario: compartido por catálogo e inventario. */
+const IPStock = (() => {
+  const shelves = {'550-C':5,'775-C':6,'825-C':6,'ATM':0,'Sin asignar':0};
+  function validate(rows) {
+    if(!Array.isArray(rows) || rows.length>100) throw new Error('Usa hasta 100 ubicaciones por premio.');
+    const seen=new Set();
+    const result=rows.map(r=>{
+      const ubicacion=String(r.ubicacion??'').trim(), estante=String(r.estante??'').trim().toUpperCase();
+      const cantidad=Number(r.cantidad);
+      if(!Object.hasOwn(shelves,ubicacion))throw new Error('Ubicación inválida: '+ubicacion);
+      if(shelves[ubicacion] ? !new RegExp('^E[1-'+shelves[ubicacion]+']$').test(estante) : estante!=='')throw new Error('Selecciona un estante válido para '+ubicacion+'.');
+      if(String(r.cantidad).trim()==='' || r.cantidad==null || typeof r.cantidad==='boolean' || !Number.isSafeInteger(cantidad) || cantidad<0 || cantidad>1e12)throw new Error('La cantidad debe ser un entero entre 0 y 1,000,000,000,000.');
+      const key=ubicacion+'|'+estante;
+      if(seen.has(key))throw new Error('Ubicación y estante repetidos: '+key+'. Usa una sola fila.');
+      seen.add(key); return {ubicacion,estante,cantidad};
+    }).filter(r=>r.cantidad>0).sort((a,b)=>(a.ubicacion+'|'+a.estante).localeCompare(b.ubicacion+'|'+b.estante));
+    if(total(result)>1e12)throw new Error('El total disponible supera el límite permitido.');
+    return result;
   }
-
-  if (guardandoProducto) return;
-
-  // Capturar el ID antes de cualquier operación asíncrona.
-  const productoId = editIndex.value;
-
-  const nombre = descripcion.value.trim();
-  const cantidadTexto = disponible.value.trim();
-  const puntosTexto = precio.value.trim();
-
-  if (!nombre || cantidadTexto === "" || puntosTexto === "") {
-    alert("Completa todos los campos");
-    return;
+  function total(rows){return rows.reduce((n,r)=>n+r.cantidad,0);}
+  function from(p){
+    const n=Number(p.disp);
+    if(!Number.isSafeInteger(n)||n<0||n>1e12)throw new Error('Existencias inválidas en '+(p.desc||'el producto'));
+    if(p.distribucionStock===undefined)return n?[{ubicacion:'Sin asignar',estante:'',cantidad:n}]:[];
+    const rows=validate(p.distribucionStock);
+    if(total(rows)!==n)throw new Error((p.desc||'Producto')+': el total y las ubicaciones no coinciden. Revisa las operaciones que actualizan existencias.');
+    return rows;
   }
-
-  const cantidad = Number(cantidadTexto);
-  const puntos = Number(puntosTexto);
-
-  if (!Number.isSafeInteger(cantidad) || cantidad < 0) {
-    alert("Disponible debe ser un número entero positivo o cero.");
-    return;
-  }
-
-  if (!Number.isFinite(puntos) || puntos < 0) {
-    alert("Puntos IP debe ser un número positivo o cero.");
-    return;
-  }
-
-  const anterior = productoId
-    ? productos.find(producto => producto.id === productoId)
-    : null;
-
-  if (productoId && !anterior) {
-    alert("El producto ya no está disponible. Actualiza la página.");
-    return;
-  }
-
-  if (!productoId) {
-    const normalizarNombre = valor =>
-      String(valor || "")
-        .normalize("NFKC")
-        .trim()
-        .replace(/\s+/g, " ")
-        .toLocaleLowerCase("es");
-
-    const existentes = productos.filter(producto =>
-      normalizarNombre(producto.desc) ===
-      normalizarNombre(nombre)
-    );
-
-    if (existentes.length) {
-      alert(
-        "Este premio ya existe. " +
-        "Agrega las unidades desde Inventario."
-      );
-
-      abrirInventario(
-        existentes.length === 1 ? existentes[0].id : ""
-      );
-
-      return;
+  function legacy(rows){
+    const result={};
+    for(const [loc,m,e] of [['550-C','m550','e550'],['775-C','m775','e775'],['825-C','m825','e825']]){
+      const found=rows.filter(r=>r.ubicacion===loc);result[m]=found.length>0;result[e]=found.map(r=>r.estante).join(', ');
     }
+    result.atm=rows.some(r=>r.ubicacion==='ATM');return result;
   }
-
-  const imagenCapturada = imagen.value.trim();
-
-  const data = {
-    desc: nombre,
-    disp: cantidad,
-    precio: puntos,
-    img: imagenCapturada || anterior?.img || "logo.png"
-  };
-
-  const sinCambios = anterior &&
-    data.desc === String(anterior.desc || "").trim() &&
-    data.disp === Number(anterior.disp) &&
-    data.precio === Number(anterior.precio) &&
-    data.img === (anterior.img || "");
-
-  if (sinCambios) {
-    alert("No hay cambios por guardar.");
-    formulario.style.display = "none";
-    editIndex.value = "";
-    return;
+  function text(rows){return rows.map(r=>r.ubicacion+(r.estante?' / '+r.estante:'')+': '+r.cantidad);}
+  function add(rows,location,shelf,qty){
+    const next=rows.map(r=>({...r})),found=next.find(r=>r.ubicacion===location && r.estante===shelf);
+    if(found)found.cantidad+=qty;else next.push({ubicacion:location,estante:shelf,cantidad:qty});
+    return validate(next);
   }
+  return {shelves,validate,total,from,legacy,text,add};
+})();
 
-  guardandoProducto = true;
-
-  const botones = formulario.querySelectorAll("button");
-  botones.forEach(boton => boton.disabled = true);
-
+// Ubicaciones y cantidades del formulario de producto.
+let stockOriginal=null;
+function opcionesEstantes(select,ubicacion,valor='') {
+  select.replaceChildren();
+  const max=IPStock.shelves[ubicacion];
+  if(!max)select.add(new Option('Sin estante',''));
+  else for(let n=1;n<=max;n++)select.add(new Option('E'+n,'E'+n));
+  if(valor)select.value=valor;
+  select.disabled=!max;
+}
+function actualizarTotalEstantes(){
+  try {const rows=leerEstantes();disponible.value=IPStock.total(rows);document.getElementById('stockMensaje').textContent='Total calculado a partir de las ubicaciones.';}
+  catch(e){document.getElementById('stockMensaje').textContent=e.message;disponible.value='';}
+}
+function agregarEstante(r={ubicacion:'Sin asignar',estante:'',cantidad:0}) {
+  const row=document.createElement('div');row.className='stock-fila';
+  const loc=document.createElement('select'),shelf=document.createElement('select'),qty=document.createElement('input'),remove=document.createElement('button');
+  loc.setAttribute('aria-label','Ubicación');shelf.setAttribute('aria-label','Estante');qty.setAttribute('aria-label','Cantidad');
+  Object.keys(IPStock.shelves).forEach(v=>loc.add(new Option(v,v)));loc.value=r.ubicacion;
+  opcionesEstantes(shelf,r.ubicacion,r.estante);
+  qty.type='number';qty.min='0';qty.step='1';qty.value=r.cantidad;remove.type='button';remove.textContent='Quitar';
+  loc.onchange=()=>{opcionesEstantes(shelf,loc.value);actualizarTotalEstantes();};shelf.onchange=actualizarTotalEstantes;qty.oninput=actualizarTotalEstantes;
+  remove.onclick=()=>{row.remove();actualizarTotalEstantes();};
+  row.append(loc,shelf,qty,remove);document.getElementById('stockFilas').append(row);actualizarTotalEstantes();
+}
+function leerEstantes(){return IPStock.validate([...document.querySelectorAll('#stockFilas .stock-fila')].map(row=>({ubicacion:row.children[0].value,estante:row.children[1].value,cantidad:row.children[2].value})));}
+function firmaProducto(p){return JSON.stringify({desc:String(p.desc||'').trim(),precio:Number(p.precio),img:p.img||'logo.png',disp:Number(p.disp),distribucionStock:IPStock.from(p),ubicaciones:p.ubicaciones||null});}
+function cargarEstantes(p){
+  const rows=p?IPStock.from(p):[];
+  stockOriginal=p?firmaProducto(p):null;
+  document.getElementById('stockFilas').replaceChildren();
+  rows.forEach(agregarEstante);if(!rows.length)agregarEstante();actualizarTotalEstantes();
+  document.getElementById('stockAnterior').textContent=p && (p.ubicacionesPrevias || (p.distribucionStock===undefined && p.ubicaciones)) ? 'Referencia anterior (sin cantidades): '+JSON.stringify(p.ubicacionesPrevias || p.ubicaciones)+'. Distribuye el total Sin asignar entre los estantes reales.' : '';
+}
+async function guardarProducto(){
+  if(!esAdmin)return alert('No tienes permiso');
+  if(guardandoProducto)return;
+  const id=editIndex.value,nombre=descripcion.value.trim(),puntosTexto=precio.value.trim(),puntos=Number(puntosTexto);
+  let rows;
+  try {rows=leerEstantes();}catch(e){return alert(e.message);}
+  if(!nombre || nombre.length>250 || /[<>\x00-\x1f]/.test(nombre))return alert('Escribe un nombre válido de hasta 250 caracteres.');
+  if(!puntosTexto || !Number.isFinite(puntos)||puntos<0||puntos>1e12)return alert('Escribe puntos IP válidos.');
+  const anterior=id?productos.find(p=>p.id===id):null;
+  if(id&&!anterior)return alert('El producto ya no está disponible.');
+  const normal=v=>String(v||'').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase('es');
+  if(!id){const matches=productos.filter(p=>normal(p.desc)===normal(nombre));if(matches.length){alert('El premio ya existe. Repón unidades desde Inventario.');abrirInventario(matches.length===1?matches[0].id:'');return;}}
+  const data={desc:nombre,disp:IPStock.total(rows),precio:puntos,img:imagen.value.trim()||anterior?.img||'logo.png',distribucionStock:rows,ubicaciones:IPStock.legacy(rows)};
   try {
-    const productoRef = productoId
-      ? db.collection("productos").doc(productoId)
-      : db.collection("productos").doc();
-
-    const movimientoRef =
-      db.collection("movimientos").doc();
-
-    const cantidadAnterior = anterior
-      ? Number(anterior.disp) || 0
-      : 0;
-
-    const precioAnterior = anterior
-      ? Number(anterior.precio) || 0
-      : 0;
-
-    const batch = db.batch();
-
-    if (productoId) {
-      // Actualiza estos campos y conserva las ubicaciones.
-      batch.update(productoRef, data);
-    } else {
-      batch.set(productoRef, {
-        ...data,
-        eliminado: false
-      });
-    }
-
-    batch.set(movimientoRef, {
-      accion: productoId ? "EDITAR" : "AGREGAR",
-      producto: data.desc,
-      productoId: productoRef.id,
-      cantidadAnterior,
-      cantidadNueva: data.disp,
-      precioAnterior,
-      precioNuevo: data.precio,
-      puntos:
-        data.precio * data.disp -
-        precioAnterior * cantidadAnterior,
-      usuario: usuario.nombre,
-      fecha: firebase.firestore.FieldValue.serverTimestamp()
+    if(anterior && firmaProducto(data)===stockOriginal && anterior.distribucionStock!==undefined){alert('No hay cambios por guardar.');formulario.style.display='none';return;}
+  }catch(e){return alert(e.message);}
+  guardandoProducto=true;
+  const controles=formulario.querySelectorAll('button,input,select');controles.forEach(x=>x.disabled=true);
+  const ref=db.collection('productos').doc(id||undefined),log=db.collection('movimientos').doc();
+  try {
+    await db.runTransaction(async tx=>{
+      const snap=await tx.get(ref);
+      if(id ? (!snap.exists||snap.data().eliminado===true||firmaProducto(snap.data())!==stockOriginal) : snap.exists)throw new Error('El premio cambió mientras lo editabas. Cancela y vuelve a abrir Editar para revisar la información vigente.');
+      const before=id?snap.data():null;
+      const payload={...data,...(before && before.distribucionStock===undefined && before.ubicaciones ? {ubicacionesPrevias:before.ubicaciones}:{}),inventarioActualizadoEn:firebase.firestore.FieldValue.serverTimestamp(),inventarioActualizadoPor:usuario.nombre||'Administrador'};
+      if(id)tx.update(ref,payload);else tx.set(ref,{...payload,eliminado:false});
+      tx.set(log,{accion:id?'EDITAR':'AGREGAR',producto:nombre,productoId:ref.id,cantidadAnterior:Number(before?.disp)||0,cantidadNueva:data.disp,precioAnterior:Number(before?.precio)||0,precioNuevo:puntos,puntos:data.disp*puntos-(Number(before?.disp)||0)*(Number(before?.precio)||0),distribucionAnterior:before?IPStock.from(before):[],distribucionNueva:rows,ubicacionesAnteriores:before?.ubicaciones||{},ubicacionesNuevas:data.ubicaciones,usuario:usuario.nombre||'Administrador',fecha:firebase.firestore.FieldValue.serverTimestamp()});
     });
-
-    await batch.commit();
-
-    formulario.style.display = "none";
-    editIndex.value = "";
-
-    alert(
-      productoId
-        ? "Producto actualizado correctamente."
-        : "Producto agregado correctamente."
-    );
-  } catch (error) {
-    console.error("Error al guardar el producto:", error);
-
-    alert(
-      "No se pudo guardar el producto. " +
-      "Revisa tu conexión y los permisos de Firebase."
-    );
-  } finally {
-    guardandoProducto = false;
-    botones.forEach(boton => boton.disabled = false);
-  }
+    formulario.style.display='none';editIndex.value='';alert('Producto y ubicaciones guardados.');
+  }catch(e){console.error(e);alert('No se pudo guardar: '+e.message);}
+  finally {guardandoProducto=false;controles.forEach(x=>x.disabled=false);disponible.readOnly=true;document.querySelectorAll('#stockFilas .stock-fila').forEach(row=>row.children[1].disabled=!IPStock.shelves[row.children[0].value]);}
 }
 
 function editarProducto(id) {
+  if (guardandoProducto) return;
   if (!esAdmin) return alert("No tienes permiso");
   const p = productos.find(prod => prod.id === id);
   if (!p) return alert("Producto no encontrado");
+  try { cargarEstantes(p); } catch(e) { return alert(e.message); }
   editIndex.value  = id;
   descripcion.value = p.desc;
   disponible.value  = p.disp;
@@ -1195,9 +1163,12 @@ function cerrarImagen() {
 }
 
 function nuevoProducto() {
+  if (guardandoProducto) return;
+  if (!esAdmin) return alert("No tienes permiso");
+  cargarEstantes(null);
   editIndex.value = "";
   descripcion.value = "";
-  disponible.value  = "";
+  disponible.value  = "0";
   precio.value      = "";
   imagen.value      = "";
   formulario.style.display = "block";
@@ -1436,26 +1407,3 @@ async function exportarEliminadosExcel() {
   
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
