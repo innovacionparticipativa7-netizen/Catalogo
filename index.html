@@ -623,6 +623,11 @@ if (esAdmin) {
   
 
 let ingresos = [];
+let usuariosCache = [];
+
+let usuariosCargados = false;
+let ingresosCargados = false;
+let guardandoProducto = false;
 
 const listaProductos = document.getElementById("listaProductos");
 const buscador       = document.getElementById("buscador");
@@ -679,18 +684,40 @@ function actualizarTotalColaboradores() {
 
   db.collection("usuarios").onSnapshot(
     snapshot => {
-      let total = 0;
-      snapshot.forEach(doc => {
-        const u = doc.data();
-        total += Number(u.puntosActuales) || 0;
-      });
-      const totalEl = document.getElementById("totalPuntosColaboradores");
-      if (totalEl) totalEl.textContent = total.toLocaleString();
+      usuariosCache = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      }));
+
+      usuariosCargados = true;
+
+      const total = usuariosCache.reduce(
+        (suma, usuario) =>
+          suma + (Number(usuario.puntosActuales) || 0),
+        0
+      );
+
+      const totalEl =
+        document.getElementById("totalPuntosColaboradores");
+
+      if (totalEl) {
+        totalEl.textContent = total.toLocaleString();
+      }
     },
-    err => {
-      console.error("Error al calcular puntos de colaboradores:", err);
-      const totalEl = document.getElementById("totalPuntosColaboradores");
-      if (totalEl) totalEl.textContent = "Error";
+    error => {
+      usuariosCargados = false;
+
+      console.error(
+        "Error al cargar usuarios y calcular puntos:",
+        error
+      );
+
+      const totalEl =
+        document.getElementById("totalPuntosColaboradores");
+
+      if (totalEl) {
+        totalEl.textContent = "Error";
+      }
     }
   );
 }
@@ -706,65 +733,117 @@ function actualizarVisitas() {
 
   db.collection("ingresos").onSnapshot(
     snapshot => {
-      const total = snapshot.size;
+      ingresos = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id
+      }));
+
+      ingresosCargados = true;
 
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
 
-      let hoyCount = 0;
-      snapshot.forEach(doc => {
-        const f = doc.data().fecha;
-        const fechaJS = f && typeof f.toDate === "function" ? f.toDate() : new Date(f);
-        if (fechaJS >= hoy) hoyCount++;
-      });
+      const manana = new Date(hoy);
+      manana.setDate(manana.getDate() + 1);
 
-      document.getElementById("totalVisitasCount").textContent = total.toLocaleString();
-      document.getElementById("visitasHoyCount").textContent = hoyCount.toLocaleString();
+      const visitasHoy = ingresos.filter(ingreso => {
+        const fecha = ingreso.fecha;
+
+        if (!fecha) return false;
+
+        const fechaJS =
+          typeof fecha.toDate === "function"
+            ? fecha.toDate()
+            : new Date(fecha);
+
+        return fechaJS >= hoy && fechaJS < manana;
+      }).length;
+
+      document.getElementById("totalVisitasCount")
+        .textContent = ingresos.length.toLocaleString();
+
+      document.getElementById("visitasHoyCount")
+        .textContent = visitasHoy.toLocaleString();
     },
-    err => {
-      console.error("Error al calcular visitas:", err);
+    error => {
+      ingresosCargados = false;
+      console.error("Error al calcular visitas:", error);
+
+      document.getElementById("totalVisitasCount")
+        .textContent = "Error";
+
+      document.getElementById("visitasHoyCount")
+        .textContent = "Error";
     }
   );
 }
 
-async function mostrarUsuariosSinIngresar() {
+function mostrarUsuariosSinIngresar() {
   if (!esAdmin) return;
 
-  try {
-    const [usuariosSnap, ingresosSnap] = await Promise.all([
-      db.collection("usuarios").get(),
-      db.collection("ingresos").get()
-    ]);
-
-    const idsConIngreso = new Set(
-      ingresosSnap.docs.map(d => normalizarCodigo(d.data().empleadoId))
+  if (!usuariosCargados || !ingresosCargados) {
+    alert(
+      "Los datos todavía no están disponibles. " +
+      "Espera unos segundos y vuelve a intentarlo."
     );
-
-    const yaIngresaron = usuariosSnap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(u => idsConIngreso.has(normalizarCodigo(u.control)));
-
-    const cuerpo = document.getElementById("cuerpoUsuariosSinIngresar");
-
-    if (!yaIngresaron.length) {
-      cuerpo.innerHTML =
-        `<tr><td colspan="3">Todavía nadie ha ingresado al sistema.</td></tr>`;
-    } else {
-      cuerpo.innerHTML = yaIngresaron.map(u => `
-        <tr>
-          <td>${u.control ?? ""}</td>
-          <td>${u.nombre ?? ""}</td>
-          <td>${u.puntosActuales ?? 0}</td>
-        </tr>
-      `).join("");
-    }
-    document.getElementById("totalYaIngresaron").textContent = yaIngresaron.length;
-    document.getElementById("modalUsuarios").style.display = "flex";
-
-  } catch (err) {
-    console.error("Error al calcular usuarios que ya ingresaron:", err);
-    alert("No se pudo calcular la lista de usuarios que ya ingresaron.");
+    return;
   }
+
+  const idsConIngreso = new Set(
+    ingresos
+      .map(ingreso =>
+        normalizarCodigo(ingreso.empleadoId)
+      )
+      .filter(Boolean)
+  );
+
+  const yaIngresaron = usuariosCache.filter(usuario => {
+    const control = normalizarCodigo(usuario.control);
+    return control && idsConIngreso.has(control);
+  });
+
+  const cuerpo =
+    document.getElementById("cuerpoUsuariosSinIngresar");
+
+  cuerpo.replaceChildren();
+
+  if (!yaIngresaron.length) {
+    const fila = document.createElement("tr");
+    const celda = document.createElement("td");
+
+    celda.colSpan = 3;
+    celda.textContent =
+      "Todavía nadie ha ingresado al sistema.";
+
+    fila.appendChild(celda);
+    cuerpo.appendChild(fila);
+  } else {
+    const fragmento = document.createDocumentFragment();
+
+    yaIngresaron.forEach(usuario => {
+      const fila = document.createElement("tr");
+
+      [
+        usuario.control ?? "",
+        usuario.nombre ?? "",
+        usuario.puntosActuales ?? 0
+      ].forEach(valor => {
+        const celda = document.createElement("td");
+        celda.textContent = String(valor);
+        fila.appendChild(celda);
+      });
+
+      fragmento.appendChild(fila);
+    });
+
+    cuerpo.appendChild(fragmento);
+  }
+
+  document.getElementById("totalYaIngresaron")
+    .textContent = yaIngresaron.length;
+
+  document.getElementById("modalUsuarios")
+    .style.display = "flex";
 }
 
 function cerrarModalUsuarios() {
@@ -908,67 +987,169 @@ async function registrarMovimiento(
 function abrirInventario(productoId = "") {
   if (!esAdmin) return alert("No tienes permiso");
   sessionStorage.setItem("inventarioVolver", window.location.href);
-  window.location.href = "inventario.html" + (productoId ? "?producto=" + encodeURIComponent(productoId) : "");
+  window.location.href = "Inventario_codigo.html" + (productoId ? "?producto=" + encodeURIComponent(productoId) : "");
 }
 
-function guardarProducto() {
-  if (!esAdmin) return alert("No tienes permiso");
-  // Las reposiciones se hacen sobre el mismo producto, sin crear otra tarjeta.
-  if (!editIndex.value) {
-    const normalizarNombreInventario = valor => String(valor || "").normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("es");
-    const existentes = productos.filter(p => normalizarNombreInventario(p.desc) === normalizarNombreInventario(descripcion.value));
+async function guardarProducto() {
+  if (!esAdmin) {
+    alert("No tienes permiso");
+    return;
+  }
+
+  if (guardandoProducto) return;
+
+  // Capturar el ID antes de cualquier operación asíncrona.
+  const productoId = editIndex.value;
+
+  const nombre = descripcion.value.trim();
+  const cantidadTexto = disponible.value.trim();
+  const puntosTexto = precio.value.trim();
+
+  if (!nombre || cantidadTexto === "" || puntosTexto === "") {
+    alert("Completa todos los campos");
+    return;
+  }
+
+  const cantidad = Number(cantidadTexto);
+  const puntos = Number(puntosTexto);
+
+  if (!Number.isSafeInteger(cantidad) || cantidad < 0) {
+    alert("Disponible debe ser un número entero positivo o cero.");
+    return;
+  }
+
+  if (!Number.isFinite(puntos) || puntos < 0) {
+    alert("Puntos IP debe ser un número positivo o cero.");
+    return;
+  }
+
+  const anterior = productoId
+    ? productos.find(producto => producto.id === productoId)
+    : null;
+
+  if (productoId && !anterior) {
+    alert("El producto ya no está disponible. Actualiza la página.");
+    return;
+  }
+
+  if (!productoId) {
+    const normalizarNombre = valor =>
+      String(valor || "")
+        .normalize("NFKC")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLocaleLowerCase("es");
+
+    const existentes = productos.filter(producto =>
+      normalizarNombre(producto.desc) ===
+      normalizarNombre(nombre)
+    );
+
     if (existentes.length) {
-      alert("Este premio ya existe. Agrega las unidades desde Inventario para conservar su imagen y ubicaciones.");
-      abrirInventario(existentes.length === 1 ? existentes[0].id : "");
+      alert(
+        "Este premio ya existe. " +
+        "Agrega las unidades desde Inventario."
+      );
+
+      abrirInventario(
+        existentes.length === 1 ? existentes[0].id : ""
+      );
+
       return;
     }
   }
 
-  if (!descripcion.value || !precio.value || !disponible.value) {
-    alert("Completa todos los campos");
+  const imagenCapturada = imagen.value.trim();
+
+  const data = {
+    desc: nombre,
+    disp: cantidad,
+    precio: puntos,
+    img: imagenCapturada || anterior?.img || "logo.png"
+  };
+
+  const sinCambios = anterior &&
+    data.desc === String(anterior.desc || "").trim() &&
+    data.disp === Number(anterior.disp) &&
+    data.precio === Number(anterior.precio) &&
+    data.img === (anterior.img || "");
+
+  if (sinCambios) {
+    alert("No hay cambios por guardar.");
+    formulario.style.display = "none";
+    editIndex.value = "";
     return;
   }
-  const data = {
-    desc: descripcion.value,
-    disp: Number(disponible.value),
-    precio: Number(precio.value),
-    img: imagen.value || "https://via.placeholder.com/300"
-  };
-if (editIndex.value) {const anterior =
- productos.find(p => p.id === editIndex.value);
 
-db.collection("productos")
-.doc(editIndex.value)
-.update(data)
-.then(()=>{
+  guardandoProducto = true;
 
- registrarMovimiento(
-   "EDITAR",
-   data.desc,
-   editIndex.value,
-   anterior.disp,
-   data.disp,
-   data.precio
- );
+  const botones = formulario.querySelectorAll("button");
+  botones.forEach(boton => boton.disabled = true);
 
-});
-  } else {
-    db.collection("productos").add(data)
-      .then(doc=>{
-      
-       registrarMovimiento(
-         "AGREGAR",
-         data.desc,
-         doc.id,
-         0,
-         data.disp,
-         data.precio
-       );
-      
+  try {
+    const productoRef = productoId
+      ? db.collection("productos").doc(productoId)
+      : db.collection("productos").doc();
+
+    const movimientoRef =
+      db.collection("movimientos").doc();
+
+    const cantidadAnterior = anterior
+      ? Number(anterior.disp) || 0
+      : 0;
+
+    const precioAnterior = anterior
+      ? Number(anterior.precio) || 0
+      : 0;
+
+    const batch = db.batch();
+
+    if (productoId) {
+      // Actualiza estos campos y conserva las ubicaciones.
+      batch.update(productoRef, data);
+    } else {
+      batch.set(productoRef, {
+        ...data,
+        eliminado: false
       });
+    }
+
+    batch.set(movimientoRef, {
+      accion: productoId ? "EDITAR" : "AGREGAR",
+      producto: data.desc,
+      productoId: productoRef.id,
+      cantidadAnterior,
+      cantidadNueva: data.disp,
+      precioAnterior,
+      precioNuevo: data.precio,
+      puntos:
+        data.precio * data.disp -
+        precioAnterior * cantidadAnterior,
+      usuario: usuario.nombre,
+      fecha: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await batch.commit();
+
+    formulario.style.display = "none";
+    editIndex.value = "";
+
+    alert(
+      productoId
+        ? "Producto actualizado correctamente."
+        : "Producto agregado correctamente."
+    );
+  } catch (error) {
+    console.error("Error al guardar el producto:", error);
+
+    alert(
+      "No se pudo guardar el producto. " +
+      "Revisa tu conexión y los permisos de Firebase."
+    );
+  } finally {
+    guardandoProducto = false;
+    botones.forEach(boton => boton.disabled = false);
   }
-  formulario.style.display = "none";
-  editIndex.value = "";
 }
 
 function editarProducto(id) {
