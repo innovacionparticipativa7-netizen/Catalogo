@@ -56,27 +56,97 @@
     }
   }
 
-  async function actualizarUsuariosOffline() {
-    if (typeof firebase === "undefined") return;
+let actualizandoUsuariosOffline = false;
+
+// Renovar el respaldo offline como máximo una vez por hora.
+const INTERVALO_USUARIOS_OFFLINE = 60 * 60 * 1000;
+
+async function actualizarUsuariosOffline() {
+  if (actualizandoUsuariosOffline) return;
+  if (!navigator.onLine) return;
+  if (typeof firebase === "undefined") return;
+  if (!firebase.apps.length) return;
+
+  actualizandoUsuariosOffline = true;
+
+  try {
+    const ultimaActualizacion = Number(
+      localStorage.getItem("usuariosOfflineActualizadoMs") || 0
+    );
+
+    const respaldo = localStorage.getItem("usuariosOffline");
+
+    let respaldoValido = false;
+
+    if (respaldo) {
+      try {
+        respaldoValido = Array.isArray(JSON.parse(respaldo));
+      } catch {
+        respaldoValido = false;
+      }
+    }
+
+    const tiempoTranscurrido =
+      Date.now() - ultimaActualizacion;
+
+    if (
+      respaldoValido &&
+      ultimaActualizacion > 0 &&
+      tiempoTranscurrido >= 0 &&
+      tiempoTranscurrido < INTERVALO_USUARIOS_OFFLINE
+    ) {
+      console.log(
+        "[App] Respaldo de usuarios reciente; se omite la descarga."
+      );
+      return;
+    }
+
     const db = firebase.firestore();
 
-    try {
-      const snapshot = await db.collection("usuarios").get();
-      const usuarios = snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          controlNormalizado: String(data.control || "").trim().replace(/\D/g, "").replace(/^0+/, "")
-        };
-      });
-      localStorage.setItem("usuariosOffline", JSON.stringify(usuarios));
-      localStorage.setItem("usuariosOfflineFecha", new Date().toLocaleString());
-      console.log(`[App] ${usuarios.length} usuario(s) guardados offline ✅`);
-    } catch (err) {
-      console.warn("[App] No se pudo actualizar usuarios offline:", err);
-    }
+    const snapshot = await db
+      .collection("usuarios")
+      .get({ source: "server" });
+
+    const usuarios = snapshot.docs.map(doc => {
+      const data = doc.data();
+
+      return {
+        ...data,
+        id: doc.id,
+        controlNormalizado: String(data.control || "")
+          .trim()
+          .replace(/\D/g, "")
+          .replace(/^0+/, "")
+      };
+    });
+
+    localStorage.setItem(
+      "usuariosOffline",
+      JSON.stringify(usuarios)
+    );
+
+    localStorage.setItem(
+      "usuariosOfflineFecha",
+      new Date().toLocaleString()
+    );
+
+    localStorage.setItem(
+      "usuariosOfflineActualizadoMs",
+      String(Date.now())
+    );
+
+    console.log(
+      `[App] ${usuarios.length} usuarios guardados offline.`
+    );
+  } catch (error) {
+    console.warn(
+      "[App] No se pudo actualizar el respaldo offline:",
+      error
+    );
+  } finally {
+    actualizandoUsuariosOffline = false;
   }
+}
 
   window.addEventListener("load", () => {
     if (navigator.onLine) {
