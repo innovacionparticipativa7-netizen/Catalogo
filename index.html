@@ -987,7 +987,7 @@ async function registrarMovimiento(
 function abrirInventario(productoId = "") {
   if (!esAdmin) return alert("No tienes permiso");
   sessionStorage.setItem("inventarioVolver", window.location.href);
-  window.location.href = "Inventario_codigo.html" + (productoId ? "?producto=" + encodeURIComponent(productoId) : "");
+  window.location.href = "inventario.html" + (productoId ? "?producto=" + encodeURIComponent(productoId) : "");
 }
 
 async function guardarProducto() {
