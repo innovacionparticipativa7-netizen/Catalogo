@@ -146,23 +146,6 @@ body {
 </div>
 
 <script>
-  // --- Limpieza automática de caché vieja (dispositivo siempre con internet) ---
-(async function limpiarCacheVieja() {
-  try {
-    if ("caches" in window) {
-      const nombres = await caches.keys();
-      await Promise.all(nombres.map(nombre => caches.delete(nombre)));
-    }
-    if ("serviceWorker" in navigator) {
-      const registros = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registros.map(reg => reg.unregister()));
-    }
-    // Borra datos offline guardados por versiones anteriores
-    
-  } catch (err) {
-    console.warn("No se pudo limpiar caché vieja:", err);
-  }
-})();
 /* ===== FIREBASE ===== */
 firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
@@ -179,23 +162,66 @@ function normalizarCodigo(valor) {
 
 let bloqueado = false;
 
-function iniciarSesion(codigo) {
+async function iniciarSesion(codigo) {
   if (bloqueado) return;
-  bloqueado = true;
-  setTimeout(() => bloqueado = false, 2000);
 
   codigo = normalizarCodigo(codigo);
-  if (!codigo) { alert("Código inválido"); return; }
 
-  db.collection("usuarios").get()
-    .then(snapshot => {
-      const doc = snapshot.docs.find(d =>
-        normalizarCodigo(d.data().control) === codigo
+  if (!codigo) {
+    alert("Código inválido");
+    return;
+  }
+
+  bloqueado = true;
+
+  const boton = document.querySelector(".btn-primary");
+  if (boton) boton.disabled = true;
+
+  let redirigiendo = false;
+
+  try {
+    const snapshot = await db
+      .collection("usuarios")
+      .where("controlNormalizado", "==", codigo)
+      .limit(2)
+      .get({ source: "server" });
+
+    if (snapshot.empty) {
+      alert("Empleado no registrado.");
+      return;
+    }
+
+    if (snapshot.size > 1) {
+      alert(
+        "Este número está duplicado. " +
+        "Solicita su revisión al administrador."
       );
-      if (!doc) { alert("Empleado no registrado"); return; }
-      completarLogin(doc.id, codigo, doc.data(), "online");
-    })
-    .catch(() => alert("Error de conexión, intenta de nuevo"));
+      return;
+    }
+
+    const documento = snapshot.docs[0];
+
+    await completarLogin(
+      documento.id,
+      codigo,
+      documento.data(),
+      "online"
+    );
+
+    redirigiendo = true;
+  } catch (error) {
+    console.error("Error al ingresar:", error);
+
+    alert(
+      "No se pudo completar el ingreso. " +
+      "Revisa la conexión y el mensaje de Firebase en la consola."
+    );
+  } finally {
+    if (!redirigiendo) {
+      bloqueado = false;
+      if (boton) boton.disabled = false;
+    }
+  }
 }
 
 function loginManual() {
@@ -239,22 +265,26 @@ function cerrarCamara() {
   document.getElementById("cameraBox").style.display = "none";
 }
 
-function completarLogin(docId, codigo, data, modo) {
-  db.collection("ingresos").add({
+async function completarLogin(docId, codigo, data, modo) {
+  await db.collection("ingresos").add({
     empleadoId: codigo,
-    nombre: data.nombre,
-    fecha: new Date(),
+    nombre: data.nombre || "",
+    fecha: firebase.firestore.FieldValue.serverTimestamp(),
     origen: modo
   });
 
   sessionStorage.setItem("usuario", JSON.stringify({
     id: docId,
-    nombre: data.nombre,
-    puntos: data.puntosActuales,
+    nombre: data.nombre || "",
+    puntos: Number(data.puntosActuales) || 0,
     rol: data.rol || "usuario"
   }));
 
-  sessionStorage.setItem("loginOrigen", window.location.href);
+  sessionStorage.setItem(
+    "loginOrigen",
+    window.location.href
+  );
+
   window.location.href = "index.html";
 }
 </script>
