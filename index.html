@@ -1114,7 +1114,24 @@ function agregarEstante(r={ubicacion:'Sin asignar',estante:'',cantidad:0}) {
   row.append(loc,shelf,qty,remove);document.getElementById('stockFilas').append(row);actualizarTotalEstantes();
 }
 function leerEstantes(){return IPStock.validate([...document.querySelectorAll('#stockFilas .stock-fila')].map(row=>({ubicacion:row.children[0].value,estante:row.children[1].value,cantidad:row.children[2].value})));}
-function firmaProducto(p){return JSON.stringify({desc:String(p.desc||'').trim(),precio:Number(p.precio),img:p.img||'logo.png',disp:Number(p.disp),distribucionStock:IPStock.from(p),ubicaciones:p.ubicaciones||null});}
+function firmaProducto(p) {
+  const ubicaciones = p.ubicaciones == null
+    ? null
+    : Object.fromEntries(
+        Object.keys(p.ubicaciones)
+          .sort()
+          .map(clave => [clave, p.ubicaciones[clave]])
+      );
+
+  return JSON.stringify({
+    desc: String(p.desc || "").trim(),
+    precio: Number(p.precio),
+    img: p.img || "logo.png",
+    disp: Number(p.disp),
+    distribucionStock: IPStock.from(p),
+    ubicaciones
+  });
+}
 function cargarEstantes(p){
   const rows=p?IPStock.from(p):[];
   stockOriginal=p?firmaProducto(p):null;
