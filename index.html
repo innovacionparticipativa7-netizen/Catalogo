@@ -981,6 +981,21 @@ function renderProductos() {
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
         <div class="stock">Disponibles: ${p.disp}</div>
+
+${esAdmin ? `
+  <div style="
+    margin:10px 0;
+    padding:10px;
+    background:#f1f5f9;
+    border-radius:8px;
+    font-size:13px;
+    line-height:1.5;
+    color:#334155;
+    text-align:left;
+  ">
+    ${mostrarUbicacionesPremio(p)}
+  </div>
+` : ""}
         ${esAdmin ? `
         <div class="actions">
           <button class="edit" onclick="editarProducto('${p.id}')">Editar</button>
