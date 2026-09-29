@@ -944,6 +944,30 @@ function actualizarSlider() {
   fill.style.width = Math.max(0, (porcentajeMax - porcentajeMin)) + "%";
 }
 
+function mostrarUbicacionesPremio(producto) {
+  if (!esAdmin) return "";
+
+  try {
+    const ubicaciones = IPStock.from(producto);
+
+    if (!ubicaciones.length) {
+      return '<div style="color:#64748b;">Sin existencias</div>';
+    }
+
+    return ubicaciones.map(item => `
+      <div style="margin-top:5px;">
+        📍 ${item.ubicacion}
+        ${item.estante ? ` · ${item.estante}` : ""}
+        · <strong>${item.cantidad}</strong>
+        ${item.cantidad === 1 ? "unidad" : "unidades"}
+      </div>
+    `).join("");
+  } catch (error) {
+    console.warn("Revisar ubicación del premio:", producto.id, error);
+    return '<div style="color:#b45309;">Revisar distribución en Inventario</div>';
+  }
+}
+  
 function renderProductos() {
   const texto = buscador.value.toLowerCase();
   let html = "";
