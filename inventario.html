@@ -17,9 +17,9 @@
   <header><div><div class="eyebrow">INNOVACIÓN PARTICIPATIVA · ADMIN</div><h1>Inventario de premios</h1><div id="adminName" class="muted"></div></div><button id="back" class="secondary">← Volver al catálogo</button></header>
   <div id="status" class="status" role="status" aria-live="polite">Conectando con el inventario…</div>
   <div class="stats"><div class="stat">Premios registrados<strong id="count">—</strong></div><div class="stat">Unidades disponibles<strong id="units">—</strong></div><div class="stat">Valor del inventario<strong id="value">—</strong></div></div>
-  <section class="panel"><h2>Inventario en Excel</h2><p class="muted">Descarga el inventario vigente. En la hoja Ubicaciones captura una fila por premio, ubicación y estante, con su cantidad final. Ajusta Disponibles en Premios para que coincida con la suma. Las columnas E:K son un resumen de consulta y se actualizan en la siguiente descarga.</p><div class="actions"><button id="export" disabled>Descargar PremiosUBI_IP.xlsx</button><button id="import" class="secondary" disabled>Importar y revisar Excel</button><input id="file" type="file" accept=".xlsx" hidden></div><p class="muted">Usa el nuevo formato de este apartado. Conserva los ID y columnas ocultas. Los archivos anteriores no contienen cantidades por estante: copia sus datos al nuevo formato. Para dejar un producto en cero, escribe 0 en Disponibles y elimina sus filas de Ubicaciones o cambia sus cantidades a 0. Omitir un producto en ambas hojas no lo elimina.</p><details><summary>Cómo agregar un premio nuevo desde Excel</summary><p class="muted">Inserta una fila en Premios antes del total: nombre nuevo, Disponibles y Puntos IP. Deja E:K y las columnas ocultas vacías. En Ubicaciones agrega sus filas con el mismo nombre, ID vacío y cantidades que sumen Disponibles. Usará logo.png como imagen inicial. Para reponer un premio existente usa el formulario de abajo.</p></details></section>
+  <section class="panel"><h2>Inventario en Excel</h2><p class="muted">Descarga el inventario vigente. En la hoja Ubicaciones captura una fila por premio, ubicación y estante, con su cantidad final. Ajusta Disponibles en Premios para que coincida con la suma. Las columnas E:K y N:Q son un resumen de consulta y se actualizan en la siguiente descarga.</p><div class="actions"><button id="export" disabled>Descargar PremiosUBI_IP.xlsx</button><button id="import" class="secondary" disabled>Importar y revisar Excel</button><input id="file" type="file" accept=".xlsx" hidden></div><p class="muted">Usa el nuevo formato de este apartado. Conserva los ID y columnas ocultas. Se acepta el conteo final con cantidades N:Q. En las nuevas descargas edita las cantidades en Ubicaciones. La columna P incluye 550-C y Oficina Oceguera; el detalle los distingue. Sin asignar no suma en N:Q y evita el indicador verde hasta completar la ubicación. Para dejar un producto en cero, escribe 0 en Disponibles y elimina sus filas de Ubicaciones o cambia sus cantidades a 0. Omitir un producto en ambas hojas no lo elimina.</p><details><summary>Cómo agregar un premio nuevo desde Excel</summary><p class="muted">Inserta una fila en Premios antes del total: nombre nuevo, Disponibles y Puntos IP. Deja E:K, N:Q y las columnas ocultas vacías. En Ubicaciones agrega sus filas con el mismo nombre, ID vacío y cantidades que sumen Disponibles. Usará logo.png como imagen inicial. Para reponer un premio existente usa el formulario de abajo.</p></details></section>
   <section id="preview" class="panel" hidden><h2>Revisa antes de guardar</h2><p id="previewSummary"></p><div class="table-wrap"><table><thead><tr><th>Premio</th><th>Operación</th><th>Cambios</th></tr></thead><tbody id="previewRows"></tbody></table></div><label class="check"><input id="confirmCheck" type="checkbox">He revisado las cantidades, los puntos y las ubicaciones.</label><div class="actions"><button id="saveImport" disabled>Guardar cambios del inventario</button><button id="cancelImport" class="secondary">Cancelar</button></div></section>
-  <section class="panel"><h2>Agregar existencias a un premio</h2><p class="muted">Selecciona el premio, las unidades que llegaron y su destino. Se sumarán a ese estante. Para salidas o traslados, ajusta la distribución desde Editar en el catálogo o desde Excel.</p><form id="restock"><div class="form-grid"><div><label for="product">Premio existente</label><select id="product" required><option value="">Selecciona un premio</option></select></div><div><label for="quantity">Unidades que llegaron</label><input id="quantity" type="number" min="1" step="1" required></div><div><label for="newPrice">Nuevos puntos IP (opcional)</label><input id="newPrice" type="number" min="0" step="any" placeholder="Conservar valor actual"></div></div><div class="form-grid"><div><label for="restockLocation">Ubicación de llegada</label><select id="restockLocation"><option>Sin asignar</option><option>550-C</option><option>775-C</option><option>825-C</option><option>ATM</option></select></div><div><label for="restockShelf">Estante</label><select id="restockShelf"></select></div></div><p id="restockInfo" class="muted"></p><button id="restockButton" disabled>Agregar existencias</button></form></section>
+  <section class="panel"><h2>Agregar existencias a un premio</h2><p class="muted">Selecciona el premio, las unidades que llegaron y su destino. Se sumarán a ese estante. Para salidas o traslados, ajusta la distribución desde Editar en el catálogo o desde Excel.</p><form id="restock"><div class="form-grid"><div><label for="product">Premio existente</label><select id="product" required><option value="">Selecciona un premio</option></select></div><div><label for="quantity">Unidades que llegaron</label><input id="quantity" type="number" min="1" step="1" required></div><div><label for="newPrice">Nuevos puntos IP (opcional)</label><input id="newPrice" type="number" min="0" step="any" placeholder="Conservar valor actual"></div></div><div class="form-grid"><div><label for="restockLocation">Ubicación de llegada</label><select id="restockLocation"><option>Sin asignar</option><option>550-C</option><option>775-C</option><option>825-C</option><option>ATM</option><option>Oficina Oceguera</option></select></div><div><label for="restockShelf">Estante</label><select id="restockShelf"></select></div></div><p id="restockInfo" class="muted"></p><button id="restockButton" disabled>Agregar existencias</button></form></section>
   <section class="panel"><div class="actions" style="justify-content:space-between;margin-bottom:16px"><h2 style="margin:0">Ubicaciones registradas</h2><input id="search" type="search" placeholder="Buscar premio o ubicación…" aria-label="Buscar premio o ubicación" style="max-width:350px"></div><div class="table-wrap"><table><thead><tr><th>Premio</th><th>Disponibles</th><th>Puntos IP</th><th>Valor total</th><th>Ubicaciones</th></tr></thead><tbody id="products"></tbody></table></div></section>
 </main>
 <p id="denied" class="status" hidden>Acceso exclusivo para administradores. Ingresa desde el catálogo con tu sesión de administrador.</p>
@@ -29,7 +29,7 @@
 "use strict";
 /* Modelo de inventario: compartido por catálogo e inventario. */
 const IPStock = (() => {
-  const shelves = {'550-C':5,'775-C':6,'825-C':6,'ATM':0,'Sin asignar':0};
+  const shelves = {'550-C':5,'775-C':6,'825-C':6,'ATM':0,'Oficina Oceguera':0,'Sin asignar':0};
   function validate(rows) {
     if(!Array.isArray(rows) || rows.length>100) throw new Error('Usa hasta 100 ubicaciones por premio.');
     const seen=new Set();
@@ -74,7 +74,7 @@ const IPStock = (() => {
 const DETAIL_HEADERS=["ID_PRODUCTO","Premio","Ubicación","Estante","Cantidad"];
 const NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const RELNS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-const HEADERS = ["Premio","Disponibles","Puntos IP","Valor total (Puntos x Disp)","550-C","Estante 550-C","775 - C","Estante 775 - C ","825 - C","Estante 825-C","ATM","ID_PRODUCTO","BASE_INVENTARIO_V2"];
+const HEADERS = ["Premio","Disponibles","Puntos IP","Valor total (Puntos x Disp)","550-C","Estante 550-C","775 - C","Estante 775 - C ","825 - C","Estante 825-C","ATM","ID_PRODUCTO","BASE_INVENTARIO_V3","Cantidad 825","Cantidad 775","Cantidad 550","Cantidad ATM"];
 const LOCATION_KEYS = ["m550","e550","m775","e775","m825","e825","atm"];
 const EDIT_KEYS = ["distribution","precio"];
 const LABELS = {distribution:"Ubicaciones y cantidades",disp:"Disponibles",precio:"Puntos IP",m550:"550-C",e550:"Estante 550-C",m775:"775-C",e775:"Estante 775-C",m825:"825-C",e825:"Estante 825-C",atm:"ATM"};
@@ -165,22 +165,31 @@ async function makeWorkbook(list) {
   const zip=await JSZip.loadAsync($("excel-template").textContent.trim(),{base64:true});
   const doc=parseXML(await zip.file("xl/worksheets/sheet1.xml").async("string"));
   const data=nodes(doc,"sheetData")[0]; data.replaceChildren();
-  function addRow(index, values) { const row=xmlElement(doc,"row");row.setAttribute("r",index);row.setAttribute("spans","1:13"); values.forEach((v,i)=>row.append(xmlCell(doc,column(i)+index,v,i===3 && index>1 ? (index===list.length+2?`SUM(D2:D${list.length+1})`:`B${index}*C${index}`):undefined)));data.append(row); }
+  function addRow(index, values) { const row=xmlElement(doc,"row");row.setAttribute("r",index);row.setAttribute("spans","1:17"); values.forEach((v,i)=>row.append(xmlCell(doc,column(i)+index,v,i===3 && index>1 ? (index===list.length+2?`SUM(D2:D${list.length+1})`:`B${index}*C${index}`):undefined)));data.append(row); }
   addRow(1,HEADERS);
-  list.forEach((p,i)=>{const s=validState(state(p),p.desc);const baseline=JSON.stringify({v:2,id:p.id,...s});addRow(i+2,[s.desc,s.disp,s.precio,s.disp*s.precio,s.m550,s.e550,s.m775,s.e775,s.m825,s.e825,s.atm,p.id,baseline]);});
+  list.forEach((p,i)=>{const s=validState(state(p),p.desc);const baseline=JSON.stringify({v:3,id:p.id,...s});addRow(i+2,[s.desc,s.disp,s.precio,s.disp*s.precio,s.m550,s.e550,s.m775,s.e775,s.m825,s.e825,s.atm,p.id,baseline,...quantitySummary(JSON.parse(s.distribution))]);});
   const last=list.length+1, totalRow=last+1;
   addRow(totalRow,["TOTAL CATÁLOGO","","",list.reduce((sum,p)=>sum+p.disp*p.precio,0)]);
-  nodes(doc,"dimension")[0].setAttribute("ref",`A1:M${totalRow}`);
+  nodes(doc,"dimension")[0].setAttribute("ref",`A1:Q${totalRow}`);
   for(const tag of ["dataValidation","conditionalFormatting"]) for(const el of nodes(doc,tag)) el.setAttribute("sqref",el.getAttribute("sqref").replace(/([A-Z]+)2:[A-Z]+\d+/g,(_,c)=>`${c}2:${c}${last}`));
   nodes(doc,"dataValidations").forEach(n=>n.remove());
-  const cols=nodes(doc,"cols")[0], hidden=xmlElement(doc,"col");for(const [k,v] of Object.entries({min:12,max:13,width:18,hidden:1,customWidth:1}))hidden.setAttribute(k,v);cols.append(hidden);
+  const cols=nodes(doc,"cols")[0], hidden=xmlElement(doc,"col");for(const [k,v] of Object.entries({min:12,max:13,width:18,hidden:1,customWidth:1}))hidden.setAttribute(k,v);cols.append(hidden);const qtyCols=xmlElement(doc,"col");for(const [k,v] of Object.entries({min:14,max:17,width:19,customWidth:1}))qtyCols.setAttribute(k,v);cols.append(qtyCols);
   const view=nodes(doc,"sheetView")[0];
   nodes(view,"selection").forEach(n=>n.remove());
   const pane=xmlElement(doc,"pane");for(const [k,v] of Object.entries({ySplit:1,topLeftCell:"A2",activePane:"bottomLeft",state:"frozen"}))pane.setAttribute(k,v);view.append(pane);
   const table=parseXML(await zip.file("xl/tables/table1.xml").async("string"));
-  table.documentElement.setAttribute("ref",`A1:M${last}`);nodes(table,"autoFilter")[0].setAttribute("ref",`A1:M${last}`);
-  const tableCols=nodes(table,"tableColumns")[0];tableCols.setAttribute("count","13");
-  ["ID_PRODUCTO","BASE_INVENTARIO_V2"].forEach((name,i)=>{const c=xmlElement(table,"tableColumn");c.setAttribute("id",20+i);c.setAttribute("name",name);tableCols.append(c);});
+  table.documentElement.setAttribute("ref",`A1:Q${last}`);nodes(table,"autoFilter")[0].setAttribute("ref",`A1:Q${last}`);
+  const tableCols=nodes(table,"tableColumns")[0];tableCols.replaceChildren();tableCols.setAttribute("count",String(HEADERS.length));
+  HEADERS.forEach((name,i)=>{const c=xmlElement(table,"tableColumn");c.setAttribute("id",i+1);c.setAttribute("name",name);tableCols.append(c);});
+  const styles=parseXML(await zip.file('xl/styles.xml').async('string'));
+  const dxfs=nodes(styles,'dxfs')[0];const styleId=dxfs.children.length;
+  const dxf=xmlElement(styles,'dxf'),fill=xmlElement(styles,'fill'),pattern=xmlElement(styles,'patternFill');pattern.setAttribute('patternType','solid');
+  const fg=xmlElement(styles,'fgColor');fg.setAttribute('rgb','FFC6EFCE');pattern.append(fg);fill.append(pattern);dxf.append(fill);dxfs.append(dxf);dxfs.setAttribute('count',styleId+1);
+  const cf=xmlElement(doc,'conditionalFormatting');cf.setAttribute('sqref',`A2:A${Math.max(2,last)}`);
+  const rule=xmlElement(doc,'cfRule');rule.setAttribute('type','expression');rule.setAttribute('dxfId',styleId);rule.setAttribute('priority','50');
+  rule.append(xmlElement(doc,'formula','AND(COUNT($N2:$Q2)=4,SUM($N2:$Q2)=$B2)'));cf.append(rule);
+  const anchor=nodes(doc,'tableParts')[0];doc.documentElement.insertBefore(cf,anchor||null);
+  zip.file('xl/styles.xml',new XMLSerializer().serializeToString(styles));
   const wb=parseXML(await zip.file("xl/workbook.xml").async("string"));
   nodes(wb,"calcPr")[0].setAttribute("fullCalcOnLoad","1");
   const serializer=new XMLSerializer();
@@ -228,18 +237,53 @@ async function readWorkbook(buffer){
     });
     if(rows.length>max)throw new Error(name+': demasiadas filas.');return rows;
   }
-  const rows=await readSheet('Premios',5002),detail=await readSheet('Ubicaciones',20001);
-  for(const [list,headers] of [[rows,HEADERS],[detail,DETAIL_HEADERS]]){
-    const header=list.find(r=>r.index===1);
-    if(!header||headers.some((h,i)=>normalize(header.cells[column(i)])!==normalize(h)))throw new Error('No cambies los encabezados ni el orden de las columnas. Descarga el formato vigente.');
-  }
-  return {rows:rows.filter(r=>r.index>1),detail:detail.filter(r=>r.index>1)};
+  const rows=await readSheet('Premios',5002);
+  const header=rows.find(r=>r.index===1);const version=String(header?.cells.M||'');
+  const v1=version==='BASE_INVENTARIO_V1';
+  if(!v1 && !['BASE_INVENTARIO_V2','BASE_INVENTARIO_V3'].includes(version))throw new Error('Formato de inventario desconocido.');
+  const expected=HEADERS.slice(0,12);
+  if(!header||expected.some((h,i)=>normalize(header.cells[column(i)])!==normalize(h)))throw new Error('No cambies los encabezados A:L.');
+  if(v1||version==='BASE_INVENTARIO_V3')if(HEADERS.slice(13).some((h,i)=>normalize(header.cells[column(i+13)])!==normalize(h)))throw new Error('Conserva los encabezados N:Q de cantidades.');
+  const detail=v1?[]:await readSheet('Ubicaciones',20001);
+  if(!v1){const h=detail.find(r=>r.index===1);if(!h||DETAIL_HEADERS.some((v,i)=>normalize(h.cells[column(i)])!==normalize(v)))throw new Error('Encabezados de Ubicaciones inválidos.');}
+  return {rows:rows.filter(r=>r.index>1),detail:detail.filter(r=>r.index>1),version:v1?1:version==='BASE_INVENTARIO_V3'?3:2};
 }
+function quantitySummary(rows){
+  return [['825-C'],['775-C'],['550-C','Oficina Oceguera'],['ATM']].map(locs=>rows.filter(r=>locs.includes(r.ubicacion)).reduce((n,r)=>n+r.cantidad,0));
+}
+async function parseCountEntries(workbook){
+  const entries=[],ids=new Set(),names=new Set();
+  for(const row of workbook.rows){
+    const c=row.cells,label='Premios / fila '+row.index;
+    if(Object.values(c).every(v=>v===''||v===false)||normalize(c.A)==='total catálogo')continue;
+    if(['A','B','C','E','F','G','H','I','J','K','L','M','N','O','P','Q'].some(k=>row.formulas.has(k)))throw new Error(label+': usa valores directos en los datos del conteo.');
+    const desired={desc:String(c.A??'').trim(),disp:number(c.B,label+' / Disponibles',true),precio:number(c.C,label+' / Puntos IP')};
+    let id=String(c.L??'').trim(),base=null;
+    if(id){try{base=JSON.parse(c.M);}catch{throw new Error(label+': información original inválida.');}
+      if(base.v!==1||base.id!==id||id.includes('/')||id.length>1500||normalize(base.desc)!==normalize(desired.desc))throw new Error(label+': ID o nombre original inválido.');
+    }else{if(c.M)throw new Error(label+': premio nuevo con información original inesperada.');id=await newId(desired.desc);}
+    const detail=[];
+    for(const [col,loc,shelfCol,checkCol] of [['N','825-C','J','I'],['O','775-C','H','G'],['P','550-C','F','E'],['Q','ATM',null,'K']]){
+      const qty=c[col]==null||c[col]===''?0:number(c[col],label+' / '+col,true);
+      if(flag(c[checkCol]??'',label)!==(qty>0))throw new Error(label+': la casilla de '+loc+' no coincide con su cantidad.');
+      if(!qty)continue;
+      const shelf=shelfCol?String(c[shelfCol]??'').trim():'';
+      const office=loc==='550-C'&&['oceguera','oficina oceguera'].includes(normalize(shelf));
+      detail.push({ubicacion:office?'Oficina Oceguera':loc,estante:office?'':shelf,cantidad:qty});
+    }
+    const rows=IPStock.validate(detail),valid=validState({...desired,distribution:JSON.stringify(rows)},label);
+    if(ids.has(id)||names.has(normalize(desired.desc)))throw new Error(label+': premio duplicado.');
+    ids.add(id);names.add(normalize(desired.desc));entries.push({id,base,desired:valid,migration:!!base,row:row.index});
+  }
+  if(!entries.length)throw new Error('El archivo no contiene premios.');return entries;
+}
+
 async function newId(name) {
   const bytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(normalize(name)));
   return "ip_"+Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,"0")).join("");
 }
 async function parseEntries(workbook){
+  if(workbook.version===1)return parseCountEntries(workbook);
   const entries=[],ids=new Set(),names=new Set(),byId=new Map(),byName=new Map();
   for(const row of workbook.rows){
     const c=row.cells,label='Premios / fila '+row.index;
@@ -250,13 +294,15 @@ async function parseEntries(workbook){
     if(id){
       if(id.includes('/')||id.length>1500)throw new Error(label+': ID inválido.');
       try{base=JSON.parse(c.M);}catch{throw new Error(label+': falta la información original. Descarga nuevamente.');}
-      if(base.v!==2||base.id!==id)throw new Error(label+': formato anterior o identificación inválida. Descarga el nuevo Excel.');
+      if(![2,3].includes(base.v)||base.id!==id)throw new Error(label+': formato anterior o identificación inválida. Descarga el nuevo Excel.');
       base=validState(base,label+' / original');
       if(normalize(base.desc)!==normalize(desired.desc))throw new Error(label+': cambia el nombre desde el catálogo.');
       // E:K son un resumen. Las cantidades y estantes se editan en Ubicaciones.
       const summary=inventoryFields(base);
       const shown={m550:flag(c.E,label),e550:String(c.F??'').trim().toUpperCase(),m775:flag(c.G,label),e775:String(c.H??'').trim().toUpperCase(),m825:flag(c.I,label),e825:String(c.J??'').trim().toUpperCase(),atm:flag(c.K,label)};
       if(LOCATION_KEYS.some(k=>shown[k]!==summary[k]))throw new Error(label+': edita los estantes en la hoja Ubicaciones; conserva el resumen E:K como se descargó.');
+      if(workbook.version===3){const expected=quantitySummary(JSON.parse(base.distribution));if(['N','O','P','Q'].some((k,i)=>number(c[k],label+' / '+k,true)!==expected[i]))throw new Error(label+': N:Q son el resumen. Edita las cantidades por estante en Ubicaciones y ajusta Disponibles.');}
+
     }else{
       if(c.M)throw new Error(label+': deja las columnas ocultas vacías para un premio nuevo.');
       if([c.E,c.F,c.G,c.H,c.I,c.J,c.K].some(v=>v!==undefined&&v!==''&&v!==false&&normalize(v)!=='false'&&normalize(v)!=='falso'&&String(v)!=='0'))throw new Error(label+': para un premio nuevo deja E:K vacías y captura su distribución en Ubicaciones.');
@@ -287,6 +333,11 @@ function mergeEntry(entry,current){
   if(!current||current.eliminado===true)throw new Error(entry.desired.desc+': el premio ya no está activo.');
   const before=validState(state(current),current.desc),after={...before},changed=[];
   if(normalize(before.desc)!==normalize(entry.base.desc))throw new Error('El nombre cambió. Descarga nuevamente el inventario.');
+  if(entry.migration){
+    for(const key of EDIT_KEYS)if(after[key]!==entry.desired[key]){after[key]=entry.desired[key];changed.push(key);}
+    after.disp=entry.desired.disp;
+    return {id:entry.id,before,after:validState(after,entry.desired.desc),changed,isNew:false};
+  }
   for(const key of EDIT_KEYS){
     if(entry.desired[key]===entry.base[key]||before[key]===entry.desired[key])continue;
     if(before[key]!==entry.base[key])throw new Error(entry.desired.desc+': '+LABELS[key]+' cambió después de descargar el archivo. Descarga nuevamente y aplica tus cambios.');
@@ -324,7 +375,7 @@ async function reviewFile(file) {
   const entries=await parseEntries(await readWorkbook(await file.arrayBuffer()));
   const plan=await planImport(entries,await freshProducts());
   pending=plan;$("preview").hidden=false;
-  $("previewSummary").textContent=`${plan.changes.filter(c=>c.isNew).length} premios nuevos · ${plan.changes.filter(c=>!c.isNew).length} premios por actualizar · ${plan.unchanged} sin cambios. No se eliminará ningún producto.`;
+  $("previewSummary").textContent=`${plan.changes.filter(c=>c.isNew).length} premios nuevos · ${plan.changes.filter(c=>!c.isNew).length} premios por actualizar · ${plan.unchanged} sin cambios. No se eliminará ningún producto.${entries.some(e=>e.migration)?" IMPORTACIÓN DEL CONTEO FÍSICO: sus cantidades y puntos sustituirán los actuales. Revisa todas las diferencias antes de guardar.":""}`;
   $("previewRows").innerHTML=plan.changes.map(c=>`<tr><td>${escapeHTML(c.after.desc)}</td><td>${c.isNew?"Nuevo":"Actualizar"}</td><td>${escapeHTML(describeChange(c))}</td></tr>`).join("") || '<tr><td colspan="3">El inventario ya coincide. No hay cambios por guardar.</td></tr>';
   showStatus("Revisión terminada. Comprueba la vista previa antes de guardar.","success");$("preview").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -381,7 +432,7 @@ function addDetailSheet(zip,wb,list,serializer){
   list.forEach(p=>IPStock.from(p).forEach(r=>add([p.id,p.desc,r.ubicacion,r.estante,r.cantidad])));
   const filter=xmlElement(doc,'autoFilter');filter.setAttribute('ref','A1:E'+Math.max(1,index-1));doc.documentElement.append(filter);
   const validations=xmlElement(doc,'dataValidations');validations.setAttribute('count','3');
-  for(const [col,type,f1,f2] of [['C','list','"550-C,775-C,825-C,ATM,Sin asignar"'],['D','list','"E1,E2,E3,E4,E5,E6"'],['E','whole','0','1000000000000']]){
+  for(const [col,type,f1,f2] of [['C','list','"550-C,775-C,825-C,ATM,Oficina Oceguera,Sin asignar"'],['D','list','"E1,E2,E3,E4,E5,E6"'],['E','whole','0','1000000000000']]){
     const v=xmlElement(doc,'dataValidation');for(const [k,x] of Object.entries({type,sqref:col+'2:'+col+'20001',allowBlank:'1',showErrorMessage:'1',errorTitle:'Valor inválido',error:'Selecciona una opción válida.'}))v.setAttribute(k,x);
     if(type==='whole')v.setAttribute('operator','between');v.append(xmlElement(doc,'formula1',f1));if(f2)v.append(xmlElement(doc,'formula2',f2));validations.append(v);
   }
