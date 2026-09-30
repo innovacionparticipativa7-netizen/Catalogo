@@ -1046,7 +1046,7 @@ function abrirInventario(productoId = "") {
 
 /* Modelo de inventario: compartido por catálogo e inventario. */
 const IPStock = (() => {
-  const shelves = {'550-C':5,'775-C':6,'825-C':6,'ATM':0,'Sin asignar':0};
+  const shelves = {'550-C':5,'775-C':6,'825-C':6,'ATM':0,'Oficina Oceguera':0,'Sin asignar':0};
   function validate(rows) {
     if(!Array.isArray(rows) || rows.length>100) throw new Error('Usa hasta 100 ubicaciones por premio.');
     const seen=new Set();
