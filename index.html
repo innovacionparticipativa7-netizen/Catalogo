@@ -467,6 +467,16 @@ body {
 #stockEditor{margin:18px 0;padding:14px;background:#f1f5f9;border-radius:10px}
 #stockEditor p{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
 @media(max-width:540px){.stock-fila{grid-template-columns:1fr 1fr}.stock-cabecera{display:none}}
+/* Editor local: conserva el formulario único y sus validaciones. */
+.card.editando { outline:2px solid #2563eb; align-self:start; }
+.card.editando > .actions { display:none; }
+.card #formulario { max-width:none; width:100%; box-sizing:border-box; padding:12px 0 0; margin:12px 0 0; box-shadow:none; border-top:1px solid #cbd5e1; }
+.card #stockEditor { padding:10px; min-width:0; }
+.card .stock-fila { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+.card .stock-cabecera { display:none; }
+.card #formulario input,.card #formulario select { box-sizing:border-box; min-width:0; }
+.card #stockAnterior { overflow-wrap:anywhere; }
+.card #formulario > button { padding:10px 14px; margin:6px 4px 0 0; }
 </style>
 </head>
 <body>
@@ -543,6 +553,7 @@ body {
   </div>
 </div>
 
+  <div id="formularioOrigen"></div>
   <div id="formulario" class="admin-panel" style="display:none;">
     <input type="hidden" id="editIndex">
     <input id="descripcion" placeholder="Descripción">
@@ -561,7 +572,7 @@ body {
     </section>
     <!-- FIN: ubicaciones y cantidades -->
     <button onclick="guardarProducto()">Guardar</button>
-    <button class="cancel" onclick="document.getElementById('formulario').style.display='none'">Cancelar</button>
+    <button class="cancel" onclick="cancelarEdicionProducto()">Cancelar</button>
   </div>
 
   <div id="loading" style="text-align:center;padding:40px;font-weight:600;">
@@ -969,14 +980,24 @@ function mostrarUbicacionesPremio(producto) {
 }
   
 function renderProductos() {
+  const editorActivo = formulario.style.display !== 'none' && editIndex.value;
+  const foco = formulario.contains(document.activeElement) ? document.activeElement : null;
+  const seleccion = foco && typeof foco.selectionStart === 'number' ? [foco.selectionStart, foco.selectionEnd] : null;
+  const tarjetaAnterior = formulario.closest('.card');
+  const posicionAnterior = tarjetaAnterior ? tarjetaAnterior.getBoundingClientRect().top : null;
+  // Retirar el nodo antes de regenerar tarjetas conserva valores y eventos.
+  document.getElementById('formularioOrigen').after(formulario);
   const texto = buscador.value.toLowerCase();
   let html = "";
 
   productos.forEach(p => {
-    if (!p.desc?.toLowerCase().includes(texto)) return;
-    if (p.precio < filtroMin || p.precio > filtroMax) return;
+    // Mantener visible el premio abierto aunque cambien filtros o datos remotos.
+    if (p.id !== editorActivo) {
+      if (!p.desc?.toLowerCase().includes(texto)) return;
+      if (p.precio < filtroMin || p.precio > filtroMax) return;
+    }
     html += `
-      <div class="card">
+      <div class="card" data-producto="${encodeURIComponent(p.id)}">
         <img src="${p.img}" loading="lazy" width="200" height="150" onclick="abrirImagen('${p.img}')">
         <span class="badge">${p.precio} IP</span>
         <h3>${p.desc}</h3>
@@ -1005,6 +1026,12 @@ ${esAdmin ? `
   });
 
   listaProductos.innerHTML = html;
+  if (editorActivo) {
+    colocarEditorEnTarjeta(editorActivo);
+    if (foco) { foco.focus({preventScroll:true}); if(seleccion) foco.setSelectionRange(...seleccion); }
+    const tarjeta = formulario.closest('.card');
+    if(tarjeta && posicionAnterior !== null) window.scrollBy(0, tarjeta.getBoundingClientRect().top-posicionAnterior);
+  }
 }
 async function registrarMovimiento(
   accion,
@@ -1153,7 +1180,7 @@ async function guardarProducto(){
   if(!id){const matches=productos.filter(p=>normal(p.desc)===normal(nombre));if(matches.length){alert('El premio ya existe. Repón unidades desde Inventario.');abrirInventario(matches.length===1?matches[0].id:'');return;}}
   const data={desc:nombre,disp:IPStock.total(rows),precio:puntos,img:imagen.value.trim()||anterior?.img||'logo.png',distribucionStock:rows,ubicaciones:IPStock.legacy(rows)};
   try {
-    if(anterior && firmaProducto(data)===stockOriginal && anterior.distribucionStock!==undefined){alert('No hay cambios por guardar.');formulario.style.display='none';return;}
+    if(anterior && firmaProducto(data)===stockOriginal && anterior.distribucionStock!==undefined){alert('No hay cambios por guardar.');cerrarEditorProducto();return;}
   }catch(e){return alert(e.message);}
   guardandoProducto=true;
   const controles=formulario.querySelectorAll('button,input,select');controles.forEach(x=>x.disabled=true);
@@ -1167,23 +1194,54 @@ async function guardarProducto(){
       if(id)tx.update(ref,payload);else tx.set(ref,{...payload,eliminado:false});
       tx.set(log,{accion:id?'EDITAR':'AGREGAR',producto:nombre,productoId:ref.id,cantidadAnterior:Number(before?.disp)||0,cantidadNueva:data.disp,precioAnterior:Number(before?.precio)||0,precioNuevo:puntos,puntos:data.disp*puntos-(Number(before?.disp)||0)*(Number(before?.precio)||0),distribucionAnterior:before?IPStock.from(before):[],distribucionNueva:rows,ubicacionesAnteriores:before?.ubicaciones||{},ubicacionesNuevas:data.ubicaciones,usuario:usuario.nombre||'Administrador',fecha:firebase.firestore.FieldValue.serverTimestamp()});
     });
-    formulario.style.display='none';editIndex.value='';alert('Producto y ubicaciones guardados.');
+    cerrarEditorProducto();alert('Producto y ubicaciones guardados.');
   }catch(e){console.error(e);alert('No se pudo guardar: '+e.message);}
   finally {guardandoProducto=false;controles.forEach(x=>x.disabled=false);disponible.readOnly=true;document.querySelectorAll('#stockFilas .stock-fila').forEach(row=>row.children[1].disabled=!IPStock.shelves[row.children[0].value]);}
 }
 
+function tarjetaProducto(id) {
+  return [...listaProductos.querySelectorAll('[data-producto]')].find(x=>x.dataset.producto===encodeURIComponent(id));
+}
+let borradorInicial = '';
+function firmaBorrador() {
+  return JSON.stringify([...formulario.querySelectorAll('input,select')].map(x=>[x.id,x.value]));
+}
+function permitirCambioEditor() {
+  if(guardandoProducto)return false;
+  return formulario.style.display==='none' || firmaBorrador()===borradorInicial || confirm('Tienes cambios sin guardar. ¿Deseas descartarlos?');
+}
+function colocarEditorEnTarjeta(id) {
+  document.querySelectorAll('.card.editando').forEach(x=>x.classList.remove('editando'));
+  const tarjeta=tarjetaProducto(id);
+  if(tarjeta){tarjeta.classList.add('editando');tarjeta.append(formulario);}
+  // Si se eliminó remotamente, conservar borrador y validación de guardado.
+}
+function cerrarEditorProducto() {
+  const tarjeta=formulario.closest('.card');
+  const top=tarjeta?tarjeta.getBoundingClientRect().top:null;
+  formulario.style.display='none';
+  document.getElementById('formularioOrigen').after(formulario);
+  if(tarjeta)tarjeta.classList.remove('editando');
+  editIndex.value='';stockOriginal=null;borradorInicial='';
+  if(tarjeta && top!==null)window.scrollBy(0,tarjeta.getBoundingClientRect().top-top);
+}
+function cancelarEdicionProducto() {
+  if(permitirCambioEditor())cerrarEditorProducto();
+}
 function editarProducto(id) {
   if (guardandoProducto) return;
-  if (!esAdmin) return alert("No tienes permiso");
-  const p = productos.find(prod => prod.id === id);
-  if (!p) return alert("Producto no encontrado");
-  try { cargarEstantes(p); } catch(e) { return alert(e.message); }
-  editIndex.value  = id;
-  descripcion.value = p.desc;
-  disponible.value  = p.disp;
-  precio.value      = p.precio;
-  imagen.value      = p.img;
-  formulario.style.display = "block";
+  if (!esAdmin) return alert('No tienes permiso');
+  if(formulario.style.display!=='none' && editIndex.value===id)return;
+  if(!permitirCambioEditor())return;
+  const p=productos.find(prod=>prod.id===id);
+  if(!p)return alert('Producto no encontrado');
+  try { IPStock.from(p); } catch(e) { return alert(e.message); }
+  cerrarEditorProducto();
+  cargarEstantes(p);
+  editIndex.value=id;descripcion.value=p.desc;disponible.value=p.disp;precio.value=p.precio;imagen.value=p.img;
+  colocarEditorEnTarjeta(id);
+  formulario.style.display='block';
+  borradorInicial=firmaBorrador();
 }
 
 async function eliminarProducto(id) {
@@ -1219,8 +1277,9 @@ function cerrarImagen() {
 }
 
 function nuevoProducto() {
-  if (guardandoProducto) return;
+  if (!permitirCambioEditor()) return;
   if (!esAdmin) return alert("No tienes permiso");
+  cerrarEditorProducto();
   cargarEstantes(null);
   editIndex.value = "";
   descripcion.value = "";
@@ -1228,6 +1287,8 @@ function nuevoProducto() {
   precio.value      = "";
   imagen.value      = "";
   formulario.style.display = "block";
+  borradorInicial=firmaBorrador();
+  formulario.scrollIntoView({block:"nearest"});
 }
 
 function cerrarSesion() {
