@@ -494,14 +494,18 @@ body {
 </div>
 
 <div id="totalPorCobrar" class="admin-only" style="background:white;padding:14px 16px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,0.08);margin-bottom:20px;font-weight:700;">
-  📌 Puntos por cobrar : <span id="totalPuntosColaboradores">0</span> IP
+  📌 Puntos por cobrar : <span id="totalPuntosColaboradores">Sin consultar</span> IP
+  <button id="consultarPuntos" onclick="actualizarTotalColaboradores()">Consultar puntos</button>
+  <small id="fechaPuntos" style="display:block;font-weight:400;margin-top:8px">Consulta manual: lee los usuarios una vez para sumar sus puntos.</small>
 </div>
 
 
 
   <div id="totalVisitas" class="admin-only" style="background:white;padding:14px 16px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,0.08);margin-bottom:20px;font-weight:700;">
-  📈 Visitas totales: <span id="totalVisitasCount">0</span>
-  &nbsp;|&nbsp; Hoy: <span id="visitasHoyCount">0</span>
+  📈 Visitas totales: <span id="totalVisitasCount">Sin consultar</span>
+  &nbsp;|&nbsp; Hoy: <span id="visitasHoyCount">Sin consultar</span>
+  <button id="consultarVisitas" onclick="actualizarVisitas()">Consultar visitas</button>
+  <small id="fechaVisitas" style="display:block;font-weight:400;margin-top:8px">Se consulta al presionar el botón.</small>
 </div>
 
 
@@ -641,10 +645,7 @@ firebase.initializeApp({
 
 const db = firebase.firestore();
 
-if (esAdmin) {
-  actualizarTotalColaboradores();
-  actualizarVisitas();
-}
+// Los indicadores administrativos se consultan bajo demanda.
 
   
 
@@ -694,6 +695,9 @@ db.collection("productos")
     },
     error => {
       console.error("Error connect:", error);
+      const aviso=document.getElementById('loading');
+      aviso.style.display='block';
+      aviso.textContent=mensajeConsulta(error)+' Los datos visibles pueden no estar actualizados.';
     }
   );
 function calcularTotalCatalogo() {
@@ -705,115 +709,86 @@ function actualizarTotalCatalogo() {
   if (totalEl) totalEl.textContent = calcularTotalCatalogo().toLocaleString();
 }
 
-function actualizarTotalColaboradores() {
-  if (!esAdmin) return;
-
-  db.collection("usuarios").onSnapshot(
-    snapshot => {
-      usuariosCache = snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      }));
-
-      usuariosCargados = true;
-
-      const total = usuariosCache.reduce(
-        (suma, usuario) =>
-          suma + (Number(usuario.puntosActuales) || 0),
-        0
-      );
-
-      const totalEl =
-        document.getElementById("totalPuntosColaboradores");
-
-      if (totalEl) {
-        totalEl.textContent = total.toLocaleString();
-      }
-    },
-    error => {
-      usuariosCargados = false;
-
-      console.error(
-        "Error al cargar usuarios y calcular puntos:",
-        error
-      );
-
-      const totalEl =
-        document.getElementById("totalPuntosColaboradores");
-
-      if (totalEl) {
-        totalEl.textContent = "Error";
-      }
-    }
-  );
+let consultandoPuntos=false, consultandoVisitas=false;
+function mensajeConsulta(error) {
+  return /resource-exhausted|quota/i.test(String(error.code)+' '+error.message)
+    ? 'La cuota de Firebase está agotada. Esta consulta no se completó.'
+    : 'No se pudo consultar. Revisa la conexión o los permisos: '+error.message;
+}
+async function actualizarTotalColaboradores() {
+  if(!esAdmin || consultandoPuntos)return;
+  consultandoPuntos=true;
+  const boton=document.getElementById('consultarPuntos'),estado=document.getElementById('fechaPuntos');
+  boton.disabled=true;estado.textContent='Consultando puntos…';
+  try {
+    const snapshot=await db.collection('usuarios').get({source:'server'});
+    usuariosCache=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));
+    usuariosCargados=true;
+    const total=usuariosCache.reduce((n,u)=>n+(Number(u.puntosActuales)||0),0);
+    document.getElementById('totalPuntosColaboradores').textContent=total.toLocaleString();
+    estado.textContent='Última consulta: '+new Date().toLocaleString()+'. Pulsa Consultar puntos para actualizar.';
+  } catch(error) {
+    usuariosCargados=false;console.error(error);
+    estado.textContent=mensajeConsulta(error)+' El valor anterior, si existe, no se actualizó.';
+  } finally {consultandoPuntos=false;boton.disabled=false;}
 }
 
-
-  
 function normalizarCodigo(valor) {
   return String(valor || "").trim().replace(/\D/g, "").replace(/^0+/, "");
 }
 
-function actualizarVisitas() {
-  if (!esAdmin) return;
-
-  db.collection("ingresos").onSnapshot(
-    snapshot => {
-      ingresos = snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id
-      }));
-
-      ingresosCargados = true;
-
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-
-      const manana = new Date(hoy);
-      manana.setDate(manana.getDate() + 1);
-
-      const visitasHoy = ingresos.filter(ingreso => {
-        const fecha = ingreso.fecha;
-
-        if (!fecha) return false;
-
-        const fechaJS =
-          typeof fecha.toDate === "function"
-            ? fecha.toDate()
-            : new Date(fecha);
-
-        return fechaJS >= hoy && fechaJS < manana;
-      }).length;
-
-      document.getElementById("totalVisitasCount")
-        .textContent = ingresos.length.toLocaleString();
-
-      document.getElementById("visitasHoyCount")
-        .textContent = visitasHoy.toLocaleString();
-    },
-    error => {
-      ingresosCargados = false;
-      console.error("Error al calcular visitas:", error);
-
-      document.getElementById("totalVisitasCount")
-        .textContent = "Error";
-
-      document.getElementById("visitasHoyCount")
-        .textContent = "Error";
-    }
-  );
+// Conteos agregados bajo demanda. Consultas y base usan el mismo módulo.
+let moduloConteo=null;
+async function cargarConteo() {
+  if(!moduloConteo)moduloConteo=Promise.all([
+    import('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js'),
+    import('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js')
+  ]).then(([appSDK,storeSDK])=>{
+    const nombre='ip-conteos';
+    const app=appSDK.getApps().find(a=>a.name===nombre)||appSDK.initializeApp(firebase.app().options,nombre);
+    return {sdk:storeSDK,db:storeSDK.getFirestore(app)};
+  }).catch(error=>{moduloConteo=null;throw error;});
+  return moduloConteo;
+}
+async function contarSinDescargar(desde,hasta) {
+  const {sdk,db:base}=await cargarConteo();
+  let consulta=sdk.collection(base,'ingresos');
+  if(desde)consulta=sdk.query(consulta,sdk.where('fecha','>=',desde),sdk.where('fecha','<',hasta));
+  const snapshot=await sdk.getCountFromServer(consulta);
+  return snapshot.data().count;
+}
+async function actualizarVisitas() {
+  if(!esAdmin || consultandoVisitas)return;
+  consultandoVisitas=true;
+  const boton=document.getElementById('consultarVisitas'),estado=document.getElementById('fechaVisitas');
+  boton.disabled=true;estado.textContent='Consultando visitas…';
+  try {
+    const hoy=new Date();hoy.setHours(0,0,0,0);
+    const manana=new Date(hoy);manana.setDate(manana.getDate()+1);
+    const [total,diarias]=await Promise.all([
+      contarSinDescargar(),
+      contarSinDescargar(hoy,manana)
+    ]);
+    document.getElementById('totalVisitasCount').textContent=total.toLocaleString();
+    document.getElementById('visitasHoyCount').textContent=diarias.toLocaleString();
+    estado.textContent='Última consulta: '+new Date().toLocaleString()+'. Hoy corresponde a la fecha local de este equipo.';
+  } catch(error) {
+    console.error(error);estado.textContent=mensajeConsulta(error)+' Los valores anteriores, si existen, no se actualizaron.';
+  } finally {consultandoVisitas=false;boton.disabled=false;}
 }
 
-function mostrarUsuariosSinIngresar() {
+async function mostrarUsuariosSinIngresar() {
   if (!esAdmin) return;
 
-  if (!usuariosCargados || !ingresosCargados) {
-    alert(
-      "Los datos todavía no están disponibles. " +
-      "Espera unos segundos y vuelve a intentarlo."
-    );
-    return;
-  }
+  try {
+    const [users,visits]=await Promise.all([
+      db.collection('usuarios').get({source:'server'}),
+      db.collection('ingresos').get({source:'server'})
+    ]);
+    usuariosCache=users.docs.map(d=>({...d.data(),id:d.id}));
+    ingresos=visits.docs.map(d=>({...d.data(),id:d.id}));
+    usuariosCargados=ingresosCargados=true;
+  } catch(error) { alert(mensajeConsulta(error));return; }
 
   const idsConIngreso = new Set(
     ingresos
