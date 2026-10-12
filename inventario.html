@@ -71,6 +71,19 @@ const IPStock = (() => {
   return {shelves,validate,total,from,legacy,text,add};
 })();
 
+
+// Caché persistente SOLO para productos; usuarios e ingresos no se guardan aquí.
+// Ambas páginas comparten la misma consulta y la misma caché entre pestañas.
+async function escucharProductosIP(onNext, onError) {
+  const nombre = 'ip-productos-cache';
+  const app = firebase.apps.find(a => a.name === nombre)
+    || firebase.initializeApp(firebase.app().options, nombre);
+  const base = app.firestore();
+  try { await base.enablePersistence({synchronizeTabs:true}); }
+  catch(error) { console.warn('Caché de productos no disponible; se usará memoria.', error.code); }
+  return base.collection('productos').onSnapshot({includeMetadataChanges:true}, onNext, onError);
+}
+
 const DETAIL_HEADERS=["ID_PRODUCTO","Premio","Ubicación","Estante","Cantidad"];
 const NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const RELNS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
@@ -93,7 +106,7 @@ function requireAdmin() {
 }
 function buttons() {
   for (const id of ["export","import","restockButton"]) $(id).disabled=!ready || busy;
-  $("saveImport").disabled=busy || !pending || !pending.changes.length || !$("confirmCheck").checked;
+  $("saveImport").disabled=!ready || busy || !pending || !pending.changes.length || !$("confirmCheck").checked;
   $("cancelImport").disabled=busy;
 }
 async function action(fn) {
@@ -144,10 +157,31 @@ function render() {
   restockInfo();
 }
 function restockInfo() { const p=products.find(x=>x.id===$("product").value); $("restockInfo").textContent=p?`Actualmente: ${format(p.disp)} unidades · ${format(p.precio)} puntos IP por unidad.`:""; }
-async function freshProducts() {
+async function freshProducts(forceServer=false) {
   requireAdmin();
-  const snap=await db.collection("productos").get({source:"server"});
-  return snap.docs.map(d=>({...d.data(),id:d.id})).filter(p=>p.eliminado!==true).sort((a,b)=>Number(a.precio)-Number(b.precio)||String(a.desc).localeCompare(String(b.desc)));
+  if(!forceServer) {
+    if(!ready)throw new Error('Espera la confirmación del servidor antes de consultar o guardar el inventario.');
+    return products.map(p=>({...p}));
+  }
+  // Solo para verificar nombres duplicados al importar altas nuevas.
+  const snap=await db.collection('productos').get({source:'server'});
+  return snap.docs.map(d=>({...d.data(),id:d.id})).filter(p=>p.eliminado!==true);
+}
+async function refreshChangedProducts(ids) {
+  // Después de guardar: leer únicamente los premios afectados, no todo el catálogo.
+  const snapshots=await Promise.all(ids.map(id=>db.collection('productos').doc(id).get({source:'server'})));
+  const mapa=new Map(products.map(p=>[p.id,p]));
+  snapshots.forEach(s=>{if(!s.exists || s.data().eliminado===true)mapa.delete(s.id);else mapa.set(s.id,{...s.data(),id:s.id});});
+  products=[...mapa.values()].sort((a,b)=>Number(a.precio)-Number(b.precio)||String(a.desc).localeCompare(String(b.desc)));
+  render();
+}
+async function refreshAfterSave(ids) {
+  try { await refreshChangedProducts(ids); return true; }
+  catch(error) {
+    ready=false;buttons();
+    showStatus('El guardado SÍ fue confirmado, pero no se pudo actualizar la vista. No repitas la operación; vuelve a abrir el inventario cuando se restablezca la conexión. '+error.message,'error');
+    return false;
+  }
 }
 function parseXML(text) { const doc=new DOMParser().parseFromString(text,"application/xml"); if(doc.getElementsByTagName("parsererror").length) throw new Error("El archivo contiene XML inválido."); return doc; }
 const nodes=(doc,tag)=>Array.from(doc.getElementsByTagNameNS(NS,tag));
@@ -388,7 +422,7 @@ async function saveImport() {
   const changes=pending.changes;if(!changes.length)return;
   showStatus("Guardando inventario e historial. Espera la confirmación…");
   // Comprobar también nombres que pudieron ser creados desde el catálogo después de la revisión.
-  const latest=await freshProducts();
+  const latest=changes.some(c=>c.isNew)?await freshProducts(true):[];
   for(const c of changes.filter(x=>x.isNew))if(latest.some(p=>normalize(p.desc)===normalize(c.after.desc)))throw new Error(c.after.desc+": apareció en el catálogo después de la revisión. Vuelve a revisar el archivo.");
   const refs=changes.map(c=>db.collection("productos").doc(c.id)), logs=changes.map(()=>db.collection("movimientos").doc());
   await db.runTransaction(async tx=>{
@@ -404,7 +438,9 @@ async function saveImport() {
       tx.set(logs[i],movement(c,c.isNew?"AGREGAR":"EDITAR"));
     });
   });
-  clearPreview();$("file").value="";showStatus(`${changes.length} premios guardados correctamente. La siguiente descarga incluirá estos cambios.`,"success");
+  clearPreview();$("file").value="";
+  if(!await refreshAfterSave(changes.map(c=>c.id)))return;
+  showStatus(`${changes.length} premios guardados correctamente. La siguiente descarga incluirá estos cambios.`,"success");
 }
 async function restock(){
   const id=$('product').value,p=products.find(x=>x.id===id);if(!p)throw new Error('Selecciona un premio.');
@@ -422,7 +458,9 @@ async function restock(){
     tx.update(ref,{...(snap.data().distribucionStock===undefined && snap.data().ubicaciones?{ubicacionesPrevias:snap.data().ubicaciones}:{}),disp:after.disp,precio:after.precio,distribucionStock:rows,ubicaciones:inventoryFields(after),inventarioActualizadoEn:firebase.firestore.FieldValue.serverTimestamp(),inventarioActualizadoPor:admin.nombre||'Administrador'});
     tx.set(log,movement({id,before,after},'REPONER'));
   });
-  $('quantity').value='';$('newPrice').value='';clearPreview();showStatus('Reposición guardada en '+loc+' '+shelf+'.','success');
+  $('quantity').value='';$('newPrice').value='';clearPreview();
+  if(!await refreshAfterSave([id]))return;
+  showStatus('Reposición guardada en '+loc+' '+shelf+'.','success');
 }
 function addDetailSheet(zip,wb,list,serializer){
   const doc=parseXML(`<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="${NS}"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="30" customWidth="1"/><col min="2" max="2" width="45" customWidth="1"/><col min="3" max="5" width="18" customWidth="1"/></cols><sheetData/></worksheet>`);
@@ -451,7 +489,7 @@ function goBack() {
   catch{target=new URL("index.html",location.href);}
   location.href=target.href;
 }
-function init() {
+async function init() {
   try {admin=requireAdmin();}catch{$("denied").hidden=false;return;}
   $("app").hidden=false;$("adminName").textContent=admin.nombre||"Administrador";
   $("back").onclick=goBack;
@@ -467,8 +505,12 @@ function init() {
     if(typeof firebase==="undefined" || typeof JSZip==="undefined")throw new Error("No se cargaron los componentes. Revisa tu conexión y vuelve a abrir la página.");
     if(!firebase.apps.length)firebase.initializeApp({apiKey:"AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",authDomain:"catalogo-ee5b7.firebaseapp.com",projectId:"catalogo-ee5b7"});
     db=firebase.firestore();
-    db.collection("productos").onSnapshot({includeMetadataChanges:true},snap=>{
-      if(snap.metadata.fromCache || snap.metadata.hasPendingWrites)return;
+    await escucharProductosIP(snap=>{
+      if(snap.metadata.fromCache || snap.metadata.hasPendingWrites){
+        ready=false;buttons();
+        showStatus('Esperando confirmación del servidor. Los datos visibles pueden no estar actualizados.');
+        return;
+      }
       products=snap.docs.map(d=>({...d.data(),id:d.id})).filter(p=>p.eliminado!==true).sort((a,b)=>Number(a.precio)-Number(b.precio)||String(a.desc).localeCompare(String(b.desc)));
       const first=!ready;ready=true;render();buttons();if(first)showStatus("Inventario conectado. Los datos se actualizan automáticamente.","success");
     },error=>{ready=false;buttons();showStatus("No se pudo consultar el inventario: "+error.message,"error");});
