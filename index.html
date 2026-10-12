@@ -609,24 +609,7 @@ const sesion = sessionStorage.getItem("usuario");
 if (!sesion) {
   window.location.href = "login.html";
 }
-// --- Limpieza automática de caché vieja (para dispositivos con internet siempre) ---
-(async function limpiarCacheVieja() {
-  try {
-    // 1) Borra todo lo guardado por el Service Worker (Cache Storage)
-    if ("caches" in window) {
-      const nombres = await caches.keys();
-      await Promise.all(nombres.map(nombre => caches.delete(nombre)));
-    }
-
-    // 2) Desregistra cualquier Service Worker activo (ya no lo necesitamos aquí)
-    if ("serviceWorker" in navigator) {
-      const registros = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registros.map(reg => reg.unregister()));
-    }
-  } catch (err) {
-    console.warn("No se pudo limpiar caché vieja:", err);
-  }
-})();
+// La PWA se registra en sync.js; no borrar su caché ni desregistrarla al entrar.
 const usuario = JSON.parse(sesion);
 const esAdmin = usuario.rol === "admin";
 
@@ -644,6 +627,19 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
+
+// Caché persistente SOLO para productos; usuarios e ingresos no se guardan aquí.
+// Ambas páginas comparten la misma consulta y la misma caché entre pestañas.
+async function escucharProductosIP(onNext, onError) {
+  const nombre = 'ip-productos-cache';
+  const app = firebase.apps.find(a => a.name === nombre)
+    || firebase.initializeApp(firebase.app().options, nombre);
+  const base = app.firestore();
+  try { await base.enablePersistence({synchronizeTabs:true}); }
+  catch(error) { console.warn('Caché de productos no disponible; se usará memoria.', error.code); }
+  return base.collection('productos').onSnapshot({includeMetadataChanges:true}, onNext, onError);
+}
+
 
 // Los indicadores administrativos se consultan bajo demanda.
 
@@ -671,35 +667,49 @@ let precioMaxGlobal = 0;
 let filtroMin = 0;
 let filtroMax = 0;
 let rangoInicializado = false;
-db.collection("productos")
-  .orderBy("precio", "asc")
-  .onSnapshot(
-    { includeMetadataChanges: true },
-    snapshot => {
-      if (!snapshot) return;
-
-      // Si el dato viene de la caché local (no confirmado por el servidor), lo ignoramos
-      if (snapshot.metadata.fromCache) {
-        console.log("Esperando datos frescos del servidor...");
-        return;
-      }
-
-      productos = snapshot.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(p => p.eliminado !== true);
-
-      document.getElementById("loading").style.display = "none";
-      generarFiltros();
-      renderProductos();
-      actualizarTotalCatalogo();
-    },
-    error => {
-      console.error("Error connect:", error);
-      const aviso=document.getElementById('loading');
-      aviso.style.display='block';
-      aviso.textContent=mensajeConsulta(error)+' Los datos visibles pueden no estar actualizados.';
+escucharProductosIP(
+  snapshot => {
+    if (snapshot.metadata.hasPendingWrites) return;
+    const aviso = document.getElementById('loading');
+    if (snapshot.metadata.fromCache && snapshot.empty && !productos.length) {
+      aviso.style.display = 'block';
+      aviso.textContent = 'Esperando conexión para cargar los premios…';
+      return;
     }
-  );
+    productos = snapshot.docs.map(d => ({...d.data(), id:d.id}))
+      .filter(p => p.eliminado !== true)
+      .sort((a,b) => Number(a.precio)-Number(b.precio) || String(a.desc).localeCompare(String(b.desc)));
+    aviso.style.display = snapshot.metadata.fromCache ? 'block' : 'none';
+    aviso.textContent = 'Mostrando la última copia disponible. Esperando confirmación del servidor…';
+    generarFiltros(); renderProductos(); actualizarTotalCatalogo();
+  },
+  error => {
+    console.error('Error de catálogo:', error);
+    const aviso = document.getElementById('loading');
+    aviso.style.display = 'block';
+    aviso.textContent = mensajeConsulta(error)+' Los datos visibles pueden no estar actualizados.';
+  }
+).catch(error => {
+  const aviso = document.getElementById('loading');
+  aviso.style.display = 'block'; aviso.textContent = mensajeConsulta(error);
+});
+
+// Reutilizar consultas administrativas por cinco minutos en esta pestaña.
+// También agrupa clics simultáneos; los errores nunca se guardan como resultados.
+const consultasIP = new Map();
+const TTL_CONSULTAS_IP = 5 * 60 * 1000;
+async function consultarColeccionIP(nombre) {
+  const previo = consultasIP.get(nombre);
+  if (previo?.pending) return previo.pending;
+  if (previo?.snapshot && Date.now()-previo.at < TTL_CONSULTAS_IP) return previo.snapshot;
+  const entrada = {};
+  entrada.pending = db.collection(nombre).get({source:'server'}).then(snapshot => {
+    entrada.snapshot = snapshot; entrada.at = Date.now(); entrada.pending = null;
+    return snapshot;
+  }).catch(error => { consultasIP.delete(nombre); throw error; });
+  consultasIP.set(nombre, entrada);
+  return entrada.pending;
+}
 function calcularTotalCatalogo() {
   return productos.reduce((acc, p) => acc + (p.precio * p.disp), 0);
 }
@@ -721,12 +731,12 @@ async function actualizarTotalColaboradores() {
   const boton=document.getElementById('consultarPuntos'),estado=document.getElementById('fechaPuntos');
   boton.disabled=true;estado.textContent='Consultando puntos…';
   try {
-    const snapshot=await db.collection('usuarios').get({source:'server'});
+    const snapshot=await consultarColeccionIP('usuarios');
     usuariosCache=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));
     usuariosCargados=true;
     const total=usuariosCache.reduce((n,u)=>n+(Number(u.puntosActuales)||0),0);
     document.getElementById('totalPuntosColaboradores').textContent=total.toLocaleString();
-    estado.textContent='Última consulta: '+new Date().toLocaleString()+'. Pulsa Consultar puntos para actualizar.';
+    estado.textContent='Última consulta: '+new Date(consultasIP.get('usuarios').at).toLocaleString()+'. Se reutiliza esta consulta durante 5 minutos.';
   } catch(error) {
     usuariosCargados=false;console.error(error);
     estado.textContent=mensajeConsulta(error)+' El valor anterior, si existe, no se actualizó.';
@@ -782,8 +792,8 @@ async function mostrarUsuariosSinIngresar() {
 
   try {
     const [users,visits]=await Promise.all([
-      db.collection('usuarios').get({source:'server'}),
-      db.collection('ingresos').get({source:'server'})
+      consultarColeccionIP('usuarios'),
+      consultarColeccionIP('ingresos')
     ]);
     usuariosCache=users.docs.map(d=>({...d.data(),id:d.id}));
     ingresos=visits.docs.map(d=>({...d.data(),id:d.id}));
@@ -1170,7 +1180,7 @@ async function guardarProducto(){
       tx.set(log,{accion:id?'EDITAR':'AGREGAR',producto:nombre,productoId:ref.id,cantidadAnterior:Number(before?.disp)||0,cantidadNueva:data.disp,precioAnterior:Number(before?.precio)||0,precioNuevo:puntos,puntos:data.disp*puntos-(Number(before?.disp)||0)*(Number(before?.precio)||0),distribucionAnterior:before?IPStock.from(before):[],distribucionNueva:rows,ubicacionesAnteriores:before?.ubicaciones||{},ubicacionesNuevas:data.ubicaciones,usuario:usuario.nombre||'Administrador',fecha:firebase.firestore.FieldValue.serverTimestamp()});
     });
     cerrarEditorProducto();alert('Producto y ubicaciones guardados.');
-  }catch(e){console.error(e);alert('No se pudo guardar: '+e.message);}
+  }catch(e){console.error(e);alert('No se pudo guardar: '+(/resource-exhausted|quota/i.test(String(e.code)+' '+e.message)?'La cuota de Firebase está agotada. El cambio no se confirmó; conserva el formulario y vuelve a intentarlo cuando se restablezca.':e.message));}
   finally {guardandoProducto=false;controles.forEach(x=>x.disabled=false);disponible.readOnly=true;document.querySelectorAll('#stockFilas .stock-fila').forEach(row=>row.children[1].disabled=!IPStock.shelves[row.children[0].value]);}
 }
 
@@ -1303,16 +1313,15 @@ async function exportarIngresosExcel() {
   }
 
   try {
-    const snapshot = await db.collection("ingresos")
-      .orderBy("fecha", "desc")
-      .get();
+    const snapshot = await consultarColeccionIP('ingresos');
 
     if (snapshot.empty) {
       alert("No hay registros");
       return;
     }
 
-    const datos = snapshot.docs.map(doc => {
+    const fechaIngreso = doc => { const f=doc.data().fecha; return f?.toMillis ? f.toMillis() : (new Date(f).getTime() || 0); };
+    const datos = [...snapshot.docs].sort((a,b)=>fechaIngreso(b)-fechaIngreso(a)).map(doc => {
       const i = doc.data();
 
       return {
@@ -1493,7 +1502,7 @@ async function exportarEliminadosExcel() {
   
 </script>
   
-<script src="sync.js"></script>
+<script src="sync.js?v=20261012-cuota-v2"></script>
 
 
   
