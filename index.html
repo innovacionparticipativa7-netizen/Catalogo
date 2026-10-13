@@ -477,9 +477,29 @@ body {
 .card #formulario input,.card #formulario select { box-sizing:border-box; min-width:0; }
 .card #stockAnterior { overflow-wrap:anywhere; }
 .card #formulario > button { padding:10px 14px; margin:6px 4px 0 0; }
+/* Confirmación de guardado sin diálogo bloqueante. */
+#avisoGuardadoIP {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #166534;
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  font: 600 15px/1.5 'Inter', sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+#avisoGuardadoIP:empty { display: none; }
 </style>
 </head>
 <body>
+<div id="avisoGuardadoIP" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="user-bar">
   <div>
@@ -1151,6 +1171,15 @@ function cargarEstantes(p){
   rows.forEach(agregarEstante);if(!rows.length)agregarEstante();actualizarTotalEstantes();
   document.getElementById('stockAnterior').textContent=p && (p.ubicacionesPrevias || (p.distribucionStock===undefined && p.ubicaciones)) ? 'Referencia anterior (sin cantidades): '+JSON.stringify(p.ubicacionesPrevias || p.ubicaciones)+'. Distribuye el total Sin asignar entre los estantes reales.' : '';
 }
+let temporizadorAvisoGuardadoIP;
+function mostrarAvisoGuardadoIP(mensaje) {
+  const aviso = document.getElementById('avisoGuardadoIP');
+  clearTimeout(temporizadorAvisoGuardadoIP);
+  aviso.textContent = mensaje;
+  temporizadorAvisoGuardadoIP = setTimeout(() => {
+    aviso.textContent = '';
+  }, 6000);
+}
 async function guardarProducto(){
   if(!esAdmin)return alert('No tienes permiso');
   if(guardandoProducto)return;
@@ -1179,7 +1208,7 @@ async function guardarProducto(){
       if(id)tx.update(ref,payload);else tx.set(ref,{...payload,eliminado:false});
       tx.set(log,{accion:id?'EDITAR':'AGREGAR',producto:nombre,productoId:ref.id,cantidadAnterior:Number(before?.disp)||0,cantidadNueva:data.disp,precioAnterior:Number(before?.precio)||0,precioNuevo:puntos,puntos:data.disp*puntos-(Number(before?.disp)||0)*(Number(before?.precio)||0),distribucionAnterior:before?IPStock.from(before):[],distribucionNueva:rows,ubicacionesAnteriores:before?.ubicaciones||{},ubicacionesNuevas:data.ubicaciones,usuario:usuario.nombre||'Administrador',fecha:firebase.firestore.FieldValue.serverTimestamp()});
     });
-    cerrarEditorProducto();alert('Producto y ubicaciones guardados.');
+    cerrarEditorProducto();mostrarAvisoGuardadoIP('Producto y ubicaciones guardados.');
   }catch(e){console.error(e);alert('No se pudo guardar: '+(/resource-exhausted|quota/i.test(String(e.code)+' '+e.message)?'La cuota de Firebase está agotada. El cambio no se confirmó; conserva el formulario y vuelve a intentarlo cuando se restablezca.':e.message));}
   finally {guardandoProducto=false;controles.forEach(x=>x.disabled=false);disponible.readOnly=true;document.querySelectorAll('#stockFilas .stock-fila').forEach(row=>row.children[1].disabled=!IPStock.shelves[row.children[0].value]);}
 }
