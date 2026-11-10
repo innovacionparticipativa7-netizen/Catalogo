@@ -7,7 +7,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 <link rel="icon" href="Favicon.png" type="image/png">
+
 <style>
 body {
   font-family: Arial;
@@ -37,7 +39,6 @@ td {
   border-bottom: 1px solid #ddd;
 }
 
-/* ===== TOP BAR ===== */
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -47,7 +48,6 @@ td {
   flex-wrap: wrap;
 }
 
-/* ===== INPUTS ESTILO PREMIOS ===== */
 .input-premios {
   height: 36px;
   padding: 0 12px;
@@ -62,7 +62,6 @@ td {
   border-color: #111827;
 }
 
-/* ===== BOTÓN ESTILO PREMIOS ===== */
 .btn-premios {
   height: 36px;
   padding: 0 16px;
@@ -82,19 +81,15 @@ td {
   background: #1f2937;
 }
 
-/* ===== ADMIN ===== */
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .admin-login {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-/* ===== PANEL ADMIN ===== */
-.admin-panel {
-  background: white;
-  padding: 15px;
-  margin: 20px 0;
-  max-width: 400px;
 }
 
 .admin-only {
@@ -103,8 +98,13 @@ td {
 
 .admin-panel {
   display: block !important;
+  background: white;
+  padding: 15px;
+  margin: 20px 0;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
-
 
 .admin-mode .admin-only {
   display: table-cell;
@@ -113,35 +113,27 @@ td {
 .admin-mode .admin-panel {
   display: block;
 }
-/* Centrar texto en toda la tabla */
+
 table th,
 table td {
   text-align: center;
   vertical-align: middle;
 }
 
-/* Botones centrados dentro de la celda */
 table td button {
   margin: 0 4px;
 }
-  .admin-panel {
-  background: white;
-  padding: 15px;
-  margin: 20px 0;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-
 </style>
 </head>
 
 <body>
 
-<a href="index.html" class="btn-premios">⬅ Volver a premios</a>
-
+<a href="index.html" class="btn-premios">
+  ⬅ Volver a premios
+</a>
 
 <h1>👤 Puntos IP</h1>
+
 <div class="top-bar">
   <input
     type="text"
@@ -151,72 +143,107 @@ table td button {
     oninput="filtrarUsuarios()"
   >
 
-
-    <div class="admin-only">
-      <input type="file" id="excelInput" accept=".xlsx,.xls">
-      <button onclick="importarExcel()">📥Importar</button>
-      <button id="btnExportar" onclick="exportarExcel()">📤Exportar</button>
-
-    </div>
+  <div class="admin-only">
+    <input type="file" id="excelInput" accept=".xlsx,.xls">
+    <button id="btnImportar" onclick="importarExcel()">
+      📥Importar
+    </button>
+    <button id="btnExportar" onclick="exportarExcel()">
+      📤Exportar
+    </button>
   </div>
 </div>
 
-
-
-
-<!-- FORM USUARIOS -->
 <div id="formUsuarios" class="admin-panel" style="display:none;">
   <h3>Administrar usuario</h3>
 
   <input type="hidden" id="userId">
 
-  <input id="controlUsuario" placeholder="Número de control"><br><br>
-  <input id="nombreUsuario" placeholder="Nombre"><br><br>
-  <input id="areaUsuario" placeholder="Área"><br><br>
+  <input id="controlUsuario" placeholder="Número de control">
+  <br><br>
 
-  <input id="puntosUsuario" type="number" placeholder="Puntos actuales"><br><br>
-   <textarea id="comentariosPuntosUsuario" placeholder="Comentarios" rows="3" style="width:100%;"></textarea><br><br>
+  <input id="nombreUsuario" placeholder="Nombre">
+  <br><br>
 
-  <textarea id="comentariosUsuario" placeholder="Comentarios" rows="3" style="width:100%;"></textarea><br><br>
+  <input id="areaUsuario" placeholder="Área">
+  <br><br>
 
-  <button class="btn-premios" onclick="guardarUsuario()">Guardar</button>
-  <button class="btn-premios" onclick="cancelarUsuario()">Cancelar</button>
+  <input
+    id="puntosUsuario"
+    type="number"
+    placeholder="Puntos actuales"
+  >
+  <br><br>
 
+  <textarea
+    id="comentariosPuntosUsuario"
+    placeholder="Comentarios"
+    rows="3"
+    style="width:100%;"
+  ></textarea>
+  <br><br>
+
+  <textarea
+    id="comentariosUsuario"
+    placeholder="Comentarios"
+    rows="3"
+    style="width:100%;"
+  ></textarea>
+  <br><br>
+
+  <button
+    id="btnGuardar"
+    class="btn-premios"
+    onclick="guardarUsuario()"
+  >
+    Guardar
+  </button>
+
+  <button
+    id="btnCancelar"
+    class="btn-premios"
+    onclick="cancelarUsuario()"
+  >
+    Cancelar
+  </button>
 </div>
-
 
 <table>
   <thead>
-  <tr>
-    <th>Control</th>
-    <th>Nombre</th>
-    <th>Puntos</th>
-    <th class="admin-only">Área</th>
-    <th class="admin-only">Comentarios de puntos</th>
-    <th class="admin-only">Comentarios</th>
-    <th class="admin-only">Acciones</th>
-  </tr>
-</thead>
+    <tr>
+      <th>Control</th>
+      <th>Nombre</th>
+      <th>Puntos</th>
+      <th class="admin-only">Área</th>
+      <th class="admin-only">Comentarios de puntos</th>
+      <th class="admin-only">Comentarios</th>
+      <th class="admin-only">Acciones</th>
+    </tr>
+  </thead>
 
   <tbody id="listaPuntos"></tbody>
 </table>
 
 <script>
-  /* ===== PROTECCIÓN SOLO ADMIN ===== */
-const sesion = sessionStorage.getItem("usuario");
+/* ===== PROTECCIÓN SOLO ADMIN ===== */
 
-if (!sesion) {
-  window.location.href = "login.html";
+let usuario = null;
+
+try {
+  usuario = JSON.parse(sessionStorage.getItem("usuario") || "null");
+} catch (error) {
+  console.error("Sesión inválida:", error);
 }
 
-const usuario = JSON.parse(sesion);
-
-// 🔒 SOLO ADMIN PUEDE ENTRAR
-if (usuario.rol !== "admin") {
+if (!usuario) {
+  window.location.replace("login.html");
+} else if (usuario.rol !== "admin") {
   alert("Acceso restringido");
-  window.location.href = "index.html";
+  window.location.replace("index.html");
 }
-// CONFIG FIREBASE
+
+/* ===== FIREBASE ===== */
+
 firebase.initializeApp({
   apiKey: "AIzaSyCfS-TI8g2KEUWQmCafvf-Ig4KtZa2o_W8",
   authDomain: "catalogo-ee5b7.firebaseapp.com",
@@ -224,15 +251,27 @@ firebase.initializeApp({
 });
 
 const db = firebase.firestore();
-  firebase.firestore().enablePersistence()
-  .catch(err => {
-    console.log("Persistencia no disponible", err.code);
-  });
+
+db.enablePersistence().catch(error => {
+  console.log("Persistencia no disponible", error.code);
+});
 
 const usuariosRef = db.collection("usuarios");
-let usuariosCache = [];
 
-// DOM
+let usuariosCache = [];
+let guardandoUsuario = false;
+let importandoExcel = false;
+
+/* Misma normalización que utiliza login.html. */
+function normalizarCodigo(valor) {
+  return String(valor ?? "")
+    .trim()
+    .replace(/\D/g, "")
+    .replace(/^0+/, "");
+}
+
+/* ===== DOM ===== */
+
 const listaPuntos = document.getElementById("listaPuntos");
 const formUsuarios = document.getElementById("formUsuarios");
 
@@ -240,116 +279,177 @@ const userId = document.getElementById("userId");
 const controlUsuario = document.getElementById("controlUsuario");
 const nombreUsuario = document.getElementById("nombreUsuario");
 const puntosUsuario = document.getElementById("puntosUsuario");
-const comentariosPuntosUsuario = document.getElementById("comentariosPuntosUsuario");
-const comentariosUsuario = document.getElementById("comentariosUsuario");
+const comentariosPuntosUsuario =
+  document.getElementById("comentariosPuntosUsuario");
+const comentariosUsuario =
+  document.getElementById("comentariosUsuario");
 const areaUsuario = document.getElementById("areaUsuario");
-  
 
+/* ===== CARGAR USUARIOS ===== */
 
+if (usuario?.rol === "admin") {
+  usuariosRef.onSnapshot(snapshot => {
+    usuariosCache = snapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id
+    }));
 
-// CARGAR USUARIOS
-// CARGA INICIAL RÁPIDA
-usuariosRef.onSnapshot(snapshot => {
-  usuariosCache = [];
-
-  snapshot.forEach(doc => {
-    usuariosCache.push({ id: doc.id, ...doc.data() });
+    filtrarUsuarios();
+  }, error => {
+    console.error("Error al cargar usuarios:", error);
+    alert("No se pudieron cargar los usuarios. Revisa la conexión.");
   });
-
-  pintarTabla(usuariosCache);
-});
+}
 
 function renderUsuariosOrdenados(snapshot) {
-  usuariosCache = [];
+  usuariosCache = snapshot.docs.map(doc => ({
+    ...doc.data(),
+    id: doc.id
+  }));
 
-  snapshot.forEach(doc => {
-    usuariosCache.push({ id: doc.id, ...doc.data() });
-  });
-
-
-
-  pintarTabla(usuariosCache);
+  filtrarUsuarios();
 }
+
+/* ===== TABLA ===== */
 
 function pintarTabla(lista) {
-  let html = "";
+  listaPuntos.replaceChildren();
 
   lista.forEach(u => {
-    html += `
-      <tr>
-        <td>${u.control}</td>
-        <td>${u.nombre}</td>
-        <td>${u.puntosActuales || 0}</td>
-        <td class="admin-only">${u.area ?? ""}</td>
-        <td class="admin-only">${u.comentariosPuntos ?? ""}</td>
-        <td class="admin-only">${u.comentarios ?? ""}</td>
-        <td class="admin-only">
-          <button onclick="editarUsuario('${u.id}')">✏️</button>
-          <button onclick="eliminarUsuario('${u.id}')">🗑️</button>
-        </td>
-      </tr>
-    `;
+    const fila = document.createElement("tr");
+
+    const valores = [
+      u.control ?? "",
+      u.nombre ?? "",
+      u.puntosActuales ?? 0,
+      u.area ?? "",
+      u.comentariosPuntos ?? "",
+      u.comentarios ?? ""
+    ];
+
+    valores.forEach((valor, indice) => {
+      const celda = document.createElement("td");
+      celda.textContent = valor;
+
+      if (indice >= 3) {
+        celda.className = "admin-only";
+      }
+
+      fila.appendChild(celda);
+    });
+
+    const acciones = document.createElement("td");
+    acciones.className = "admin-only";
+
+    const editar = document.createElement("button");
+    editar.textContent = "✏️";
+    editar.onclick = () => editarUsuario(u.id);
+
+    const eliminar = document.createElement("button");
+    eliminar.textContent = "🗑️";
+    eliminar.onclick = () => eliminarUsuario(u.id);
+
+    acciones.append(editar, eliminar);
+    fila.appendChild(acciones);
+    listaPuntos.appendChild(fila);
   });
-
-  listaPuntos.innerHTML = html;
 }
 
+/* ===== GUARDAR / EDITAR ===== */
 
+async function guardarUsuario() {
+  if (usuario?.rol !== "admin") return;
+  if (guardandoUsuario || importandoExcel) return;
 
-  
+  const control = controlUsuario.value.trim();
+  const controlNormalizado = normalizarCodigo(control);
 
+  if (!controlNormalizado || !/^\d+$/.test(control)) {
+    alert("Ingresa un número de empleado válido, solamente con dígitos.");
+    return;
+  }
 
+  if (!nombreUsuario.value.trim()) {
+    alert("Ingresa el nombre del empleado.");
+    return;
+  }
 
-
-// GUARDAR / EDITAR
-function guardarUsuario() {
   const data = {
-  control: controlUsuario.value,
-  nombre: nombreUsuario.value,
-  area: areaUsuario.value || "",
-  puntosActuales: Number(puntosUsuario.value) || 0,
-  comentariosPuntos: comentariosPuntosUsuario.value || "",
-  comentarios: comentariosUsuario.value || ""
-};
+    control,
+    controlNormalizado,
+    nombre: nombreUsuario.value.trim(),
+    area: areaUsuario.value || "",
+    puntosActuales: Number(puntosUsuario.value) || 0,
+    comentariosPuntos: comentariosPuntosUsuario.value || "",
+    comentarios: comentariosUsuario.value || ""
+  };
 
+  // Conserva el ID existente al editar.
+  const idFinal = userId.value || control;
 
-  const idFinal = userId.value || controlUsuario.value;
+  guardandoUsuario = true;
 
-db.collection("usuarios")
-  .doc(idFinal)
-  .set(data, { merge: true });
+  const boton = document.getElementById("btnGuardar");
+  const cancelar = document.getElementById("btnCancelar");
 
+  boton.disabled = true;
+  cancelar.disabled = true;
+  boton.textContent = "Guardando...";
 
-  cancelarUsuario();
+  try {
+    await usuariosRef.doc(idFinal).set(data, { merge: true });
+
+    cancelarUsuario();
+    alert("✅ Usuario guardado correctamente.");
+  } catch (error) {
+    console.error("Error al guardar usuario:", error);
+    alert(
+      "No se pudo confirmar el guardado. " +
+      "Revisa la conexión y el mensaje de Firebase en la consola."
+    );
+  } finally {
+    guardandoUsuario = false;
+    boton.disabled = false;
+    cancelar.disabled = false;
+    boton.textContent = "Guardar";
+  }
 }
 
+/* ===== EDITAR ===== */
 
-
-
-// EDITAR
 function editarUsuario(id) {
+  if (guardandoUsuario || importandoExcel) return;
+
   const u = usuariosCache.find(user => user.id === id);
   if (!u) return;
 
   userId.value = id;
-  controlUsuario.value = u.control;
-  nombreUsuario.value = u.nombre;
+  controlUsuario.value = u.control ?? "";
+  nombreUsuario.value = u.nombre ?? "";
   areaUsuario.value = u.area ?? "";
   puntosUsuario.value = u.puntosActuales ?? 0;
   comentariosPuntosUsuario.value = u.comentariosPuntos ?? "";
   comentariosUsuario.value = u.comentarios ?? "";
 }
 
+/* ===== ELIMINAR ===== */
 
+async function eliminarUsuario(id) {
+  if (usuario?.rol !== "admin") return;
+  if (guardandoUsuario || importandoExcel) return;
 
-// ELIMINAR
-function eliminarUsuario(id) {
-  if (confirm("¿Eliminar usuario?")) {
-    db.collection("usuarios").doc(id).delete();
+  if (!confirm("¿Eliminar usuario?")) return;
+
+  try {
+    await usuariosRef.doc(id).delete();
+  } catch (error) {
+    console.error("Error al eliminar usuario:", error);
+    alert("No se pudo confirmar la eliminación del usuario.");
   }
 }
 
-// LIMPIAR FORM
+/* ===== LIMPIAR FORMULARIO ===== */
+
 function cancelarUsuario() {
   userId.value = "";
   controlUsuario.value = "";
@@ -360,101 +460,225 @@ function cancelarUsuario() {
   comentariosUsuario.value = "";
 }
 
-  function importarExcel() {
+/* ===== IMPORTAR EXCEL ===== */
+
+async function importarExcel() {
+  if (usuario?.rol !== "admin") return;
+  if (importandoExcel || guardandoUsuario) return;
+
   const file = document.getElementById("excelInput").files[0];
+
   if (!file) {
     alert("Selecciona un archivo Excel");
     return;
   }
 
-  const reader = new FileReader();
+  importandoExcel = true;
 
-  reader.onload = function (e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: "array" });
+  const boton = document.getElementById("btnImportar");
+  boton.disabled = true;
+  boton.textContent = "Importando...";
+
+  let importados = 0;
+
+  try {
+    const contenido = await file.arrayBuffer();
+    const workbook = XLSX.read(
+      new Uint8Array(contenido),
+      { type: "array" }
+    );
+
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    if (!sheet) {
+      throw new Error("El archivo no contiene una hoja válida.");
+    }
 
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    rows.forEach(row => {
-      if (!row.control) return;
+    if (!rows.length) {
+      alert("El archivo no contiene usuarios.");
+      return;
+    }
+
+    if (!rows.some(row =>
+      Object.prototype.hasOwnProperty.call(row, "control")
+    )) {
+      alert(
+        'El Excel debe tener una columna llamada "control".\n\n' +
+        "Utiliza el formato del botón Exportar: control, nombre, " +
+        "area, puntosActuales, comentariosPuntos y comentarios."
+      );
+      return;
+    }
+
+    // Validar todas las filas antes de empezar a guardar.
+    const registros = [];
+
+    for (let indice = 0; indice < rows.length; indice++) {
+      const row = rows[indice];
+
+      if (
+        row.control === undefined ||
+        row.control === null ||
+        String(row.control).trim() === ""
+      ) {
+        continue;
+      }
+
+      const control = String(row.control).trim();
+      const controlNormalizado = normalizarCodigo(control);
+
+      if (!controlNormalizado || !/^\d+$/.test(control)) {
+        throw new Error(
+          "Número de empleado inválido en el registro " +
+          (indice + 1) + ": " + control
+        );
+      }
 
       const dataUsuario = {
-  control: String(row.control),
-  nombre: row.nombre ?? "",
-  area: row.area ?? "",
+        control,
+        controlNormalizado
+      };
 
-  puntosActuales: Number(row.puntosActuales) || 0,
-  comentariosPuntos: row.comentariosPuntos ?? "",
-  comentarios: row.comentarios ?? ""
-};
+      /*
+       * Actualizar únicamente las columnas presentes.
+       * Si el Excel no incluye puntos, conserva los existentes.
+       */
+      if (Object.prototype.hasOwnProperty.call(row, "nombre")) {
+        dataUsuario.nombre = row.nombre ?? "";
+      }
 
+      if (Object.prototype.hasOwnProperty.call(row, "area")) {
+        dataUsuario.area = row.area ?? "";
+      }
 
+      if (
+        Object.prototype.hasOwnProperty.call(row, "puntosActuales")
+      ) {
+        const puntos = Number(row.puntosActuales);
 
-      // usamos control como ID para evitar duplicados
-      db.collection("usuarios")
-        .doc(String(row.control))
-        .set(dataUsuario, { merge: true });
-    });
+        if (!Number.isFinite(puntos)) {
+          throw new Error(
+            "Puntos inválidos para el empleado " + control
+          );
+        }
 
-    alert("✅ Excel importado correctamente");
-  };
+        dataUsuario.puntosActuales = puntos;
+      }
 
-  reader.readAsArrayBuffer(file);
+      if (
+        Object.prototype.hasOwnProperty.call(row, "comentariosPuntos")
+      ) {
+        dataUsuario.comentariosPuntos = row.comentariosPuntos ?? "";
+      }
+
+      if (
+        Object.prototype.hasOwnProperty.call(row, "comentarios")
+      ) {
+        dataUsuario.comentarios = row.comentarios ?? "";
+      }
+
+      registros.push({
+        id: control,
+        data: dataUsuario
+      });
+    }
+
+    if (!registros.length) {
+      alert('No se encontraron números en la columna "control".');
+      return;
+    }
+
+    // Mantiene el número de control como ID, como el código original.
+    for (const registro of registros) {
+      await usuariosRef
+        .doc(registro.id)
+        .set(registro.data, { merge: true });
+
+      importados++;
+      boton.textContent =
+        "Importando " + importados + "/" + registros.length;
+    }
+
+    alert(
+      "✅ Excel importado correctamente.\n" +
+      "Registros guardados: " + importados
+    );
+  } catch (error) {
+    console.error("Error al importar Excel:", error);
+
+    alert(
+      "La importación no se completó.\n" +
+      "Registros confirmados: " + importados + "\n\n" +
+      error.message
+    );
+  } finally {
+    importandoExcel = false;
+    boton.disabled = false;
+    boton.textContent = "📥Importar";
+  }
 }
-function exportarExcel() {
 
+/* ===== EXPORTAR EXCEL ===== */
+
+function exportarExcel() {
   const btn = document.getElementById("btnExportar");
   btn.disabled = true;
   btn.innerText = "Exportando...";
 
-  const data = usuariosCache.map(u => ({
-    control: u.control ?? "",
-    nombre: u.nombre ?? "",
-    area: u.area ?? "",
-    puntosActuales: u.puntosActuales ?? 0,
-    comentariosPuntos: u.comentariosPuntos ?? "",
-    comentarios: u.comentarios ?? ""
-  }));
+  try {
+    const data = usuariosCache.map(u => ({
+      control: u.control ?? "",
+      nombre: u.nombre ?? "",
+      area: u.area ?? "",
+      puntosActuales: u.puntosActuales ?? 0,
+      comentariosPuntos: u.comentariosPuntos ?? "",
+      comentarios: u.comentarios ?? ""
+    }));
 
-  if (data.length === 0) {
-    alert("No hay datos para exportar");
+    if (data.length === 0) {
+      alert("No hay datos para exportar");
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, "Usuarios");
+    XLSX.writeFile(wb, "usuarios_puntos.xlsx");
+  } catch (error) {
+    console.error("Error al exportar:", error);
+    alert("No se pudo exportar el archivo.");
+  } finally {
     btn.disabled = false;
     btn.innerText = "📤Exportar";
-    return;
   }
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Usuarios");
-
-  XLSX.writeFile(wb, "usuarios_puntos.xlsx");
-
-  setTimeout(() => {
-    btn.disabled = false;
-    btn.innerText = "📤Exportar";
-  }, 1500);
 }
 
+/* ===== BUSCADOR ===== */
+
 function filtrarUsuarios() {
-  const texto = document.getElementById("buscador").value.toLowerCase();
+  const texto = document
+    .getElementById("buscador")
+    .value
+    .toLowerCase();
 
   const filtrados = usuariosCache.filter(u =>
-    String(u.control).toLowerCase().includes(texto) ||
-    String(u.nombre).toLowerCase().includes(texto) ||
+    String(u.control ?? "").toLowerCase().includes(texto) ||
+    String(u.nombre ?? "").toLowerCase().includes(texto) ||
     String(u.area ?? "").toLowerCase().includes(texto)
   );
 
   pintarTabla(filtrados);
 }
-  // ACTIVAR ADMIN AUTOMÁTICAMENTE
+
 window.onload = function() {
+  if (usuario?.rol !== "admin") return;
+
   document.body.classList.add("admin-mode");
   formUsuarios.style.display = "block";
 };
-
-
-
 </script>
 
 </body>
